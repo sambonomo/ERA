@@ -1,3 +1,4 @@
+// src/firebase/config.js
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
@@ -15,10 +16,20 @@ const firebaseConfig = {
   measurementId: process.env.REACT_APP_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
+// 1) Initialize the Firebase app
 const app = initializeApp(firebaseConfig);
 // If you need analytics: const analytics = getAnalytics(app);
 
+// 2) Export Firestore
 export const db = getFirestore(app);
+
+// 3) Export Auth
 export const auth = getAuth(app);
+
+// 4) Export Functions
+//    This allows you to call httpsCallable(functions, 'createCheckoutSession')
 export const functions = getFunctions(app);
+
+// Additional options?
+// If you need region-specific functions or emulator support, you can do:
+// export const functions = getFunctions(app, 'us-central1');

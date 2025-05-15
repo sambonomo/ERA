@@ -9,27 +9,44 @@ import {
   updateDoc,
   deleteDoc,
   doc,
-  serverTimestamp
+  serverTimestamp,
 } from 'firebase/firestore';
+
+// Material UI
+import {
+  Box,
+  Container,
+  Typography,
+  Grid,
+  Paper,
+  TextField,
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Divider,
+} from '@mui/material';
 
 const AdminPanel = () => {
   const { user } = useContext(AuthContext);
   const [isAdmin, setIsAdmin] = useState(false);
-  
+
   // Example data sets
   const [employees, setEmployees] = useState([]);
-  const [newEmployee, setNewEmployee] = useState({ name: '', department: '', email: '' });
+  const [newEmployee, setNewEmployee] = useState({
+    name: '',
+    department: '',
+    email: '',
+  });
   const [kudosStats, setKudosStats] = useState({ totalKudos: 0 });
   const [rewards, setRewards] = useState([]);
   const [newReward, setNewReward] = useState({ name: '', cost: 0 });
 
-  // Check if the current user is admin (adjust logic as needed)
+  // Check if user is admin
   useEffect(() => {
-    // For example, you might store an 'admin' field in a users collection:
-    // db.collection('users').doc(user.uid).get().then(doc => setIsAdmin(doc.data().admin));
-    // Or maybe in the AuthContext itself
-    // For now, we'll simulate with a simple condition:
     if (user && user.email === 'admin@yourcompany.com') {
+      // Example check. You can also check `AuthContext.isAdmin()` or Firestore data
       setIsAdmin(true);
     } else {
       setIsAdmin(false);
@@ -39,31 +56,36 @@ const AdminPanel = () => {
   // Fetch Employees
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'employees'), (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
       setEmployees(data);
     });
     return () => unsub();
   }, []);
 
-  // Fetch Kudos Stats (for example, total kudos or advanced analytics)
+  // Fetch Kudos Stats
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'kudos'), (snapshot) => {
-      // Example: just total count
       setKudosStats({ totalKudos: snapshot.size });
     });
     return () => unsub();
   }, []);
 
-  // Fetch Rewards (if you have a reward store)
+  // Fetch Rewards
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'rewards'), (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
       setRewards(data);
     });
     return () => unsub();
   }, []);
 
-  // Handle New Employee Form Submit
+  // Handle new employee form
   const handleAddEmployee = async (e) => {
     e.preventDefault();
     try {
@@ -77,7 +99,7 @@ const AdminPanel = () => {
     }
   };
 
-  // Update Employee Department (example)
+  // Update Employee Department
   const handleUpdateDepartment = async (employeeId, department) => {
     try {
       const ref = doc(db, 'employees', employeeId);
@@ -98,13 +120,13 @@ const AdminPanel = () => {
     }
   };
 
-  // Handle New Reward
+  // Handle new reward form
   const handleAddReward = async (e) => {
     e.preventDefault();
     try {
       await addDoc(collection(db, 'rewards'), {
         ...newReward,
-        cost: Number(newReward.cost), // ensure numeric
+        cost: Number(newReward.cost),
         createdAt: serverTimestamp(),
       });
       setNewReward({ name: '', cost: 0 });
@@ -113,122 +135,222 @@ const AdminPanel = () => {
     }
   };
 
+  // Auth checks
   if (!user) {
-    return <p>Please log in to view the Admin Panel.</p>;
+    return (
+      <Box sx={{ p: 4 }}>
+        <Typography>Please log in to view the Admin Panel.</Typography>
+      </Box>
+    );
   }
-
   if (!isAdmin) {
-    return <p>Access Denied. You need admin privileges to view this page.</p>;
+    return (
+      <Box sx={{ p: 4 }}>
+        <Typography>Access Denied. You need admin privileges to view this page.</Typography>
+      </Box>
+    );
   }
 
   return (
-    <div className="admin-panel">
-      <h1>Admin Panel</h1>
-      <p>Welcome, {user.email}. Manage employees, rewards, and see kudos stats here.</p>
+    <Container sx={{ py: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        Admin Panel
+      </Typography>
+      <Typography variant="body1" sx={{ mb: 3 }}>
+        Welcome, {user.email}. Manage employees, rewards, and see kudos stats here.
+      </Typography>
 
       {/* Quick Stats */}
-      <section className="admin-stats">
-        <div className="stats-card">
-          <h3>Total Employees</h3>
-          <p>{employees.length}</p>
-        </div>
-        <div className="stats-card">
-          <h3>Total Kudos</h3>
-          <p>{kudosStats.totalKudos}</p>
-        </div>
-      </section>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6">Total Employees</Typography>
+            <Typography variant="h4" sx={{ mt: 1 }}>
+              {employees.length}
+            </Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6">Total Kudos</Typography>
+            <Typography variant="h4" sx={{ mt: 1 }}>
+              {kudosStats.totalKudos}
+            </Typography>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <Divider sx={{ my: 3 }} />
 
       {/* Employee Management */}
-      <section className="admin-employees">
-        <h2>Manage Employees</h2>
+      <Typography variant="h5" sx={{ mb: 2 }}>
+        Manage Employees
+      </Typography>
 
-        {/* Add New Employee */}
-        <form className="add-employee-form" onSubmit={handleAddEmployee}>
-          <h4>Add New Employee</h4>
-          <input
-            type="text"
-            placeholder="Name"
+      {/* Add New Employee Form */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Add New Employee
+        </Typography>
+        <Box
+          component="form"
+          onSubmit={handleAddEmployee}
+          sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}
+        >
+          <TextField
+            label="Name"
+            variant="outlined"
+            required
             value={newEmployee.name}
-            onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
-            required
+            onChange={(e) =>
+              setNewEmployee({ ...newEmployee, name: e.target.value })
+            }
+            sx={{ minWidth: 200 }}
           />
-          <input
-            type="text"
-            placeholder="Department"
+          <TextField
+            label="Department"
+            variant="outlined"
+            required
             value={newEmployee.department}
-            onChange={(e) => setNewEmployee({ ...newEmployee, department: e.target.value })}
-            required
+            onChange={(e) =>
+              setNewEmployee({ ...newEmployee, department: e.target.value })
+            }
+            sx={{ minWidth: 200 }}
           />
-          <input
+          <TextField
+            label="Email"
+            variant="outlined"
             type="email"
-            placeholder="Email"
-            value={newEmployee.email}
-            onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
             required
+            value={newEmployee.email}
+            onChange={(e) =>
+              setNewEmployee({ ...newEmployee, email: e.target.value })
+            }
+            sx={{ minWidth: 220 }}
           />
-          <button type="submit">Add Employee</button>
-        </form>
+          <Button type="submit" variant="contained" sx={{ alignSelf: 'center' }}>
+            Add Employee
+          </Button>
+        </Box>
+      </Paper>
 
-        {/* Existing Employees List */}
-        <div className="employee-list">
-          <h4>Current Employees</h4>
-          {employees.map((emp) => (
-            <div key={emp.id} className="employee-item">
-              <p><strong>{emp.name}</strong> ({emp.department})</p>
-              <p>{emp.email}</p>
-              <div className="employee-actions">
-                <select
+      {/* Existing Employees List */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Current Employees
+        </Typography>
+        {employees.map((emp) => (
+          <Box
+            key={emp.id}
+            sx={{
+              mb: 2,
+              p: 2,
+              border: '1px solid #eee',
+              borderRadius: 2,
+            }}
+          >
+            <Typography>
+              <strong>{emp.name}</strong> ({emp.department})
+            </Typography>
+            <Typography variant="body2">{emp.email}</Typography>
+
+            <Box sx={{ mt: 1, display: 'flex', gap: 2, alignItems: 'center' }}>
+              <FormControl variant="outlined" size="small">
+                <InputLabel>Department</InputLabel>
+                <Select
+                  label="Department"
                   value={emp.department}
-                  onChange={(e) => handleUpdateDepartment(emp.id, e.target.value)}
+                  onChange={(e) =>
+                    handleUpdateDepartment(emp.id, e.target.value)
+                  }
+                  sx={{ width: 150 }}
                 >
-                  <option value="HR">HR</option>
-                  <option value="Sales">Sales</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Engineering">Engineering</option>
-                </select>
-                <button onClick={() => handleDeleteEmployee(emp.id)}>Delete</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+                  <MenuItem value="HR">HR</MenuItem>
+                  <MenuItem value="Sales">Sales</MenuItem>
+                  <MenuItem value="Marketing">Marketing</MenuItem>
+                  <MenuItem value="Engineering">Engineering</MenuItem>
+                </Select>
+              </FormControl>
+
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => handleDeleteEmployee(emp.id)}
+              >
+                Delete
+              </Button>
+            </Box>
+          </Box>
+        ))}
+      </Paper>
+
+      <Divider sx={{ my: 3 }} />
 
       {/* Rewards Management */}
-      <section className="admin-rewards">
-        <h2>Manage Rewards</h2>
+      <Typography variant="h5" sx={{ mb: 2 }}>
+        Manage Rewards
+      </Typography>
 
-        {/* Add New Reward */}
-        <form className="add-reward-form" onSubmit={handleAddReward}>
-          <h4>Add Reward</h4>
-          <input
-            type="text"
-            placeholder="Reward Name"
+      {/* Add New Reward */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Add Reward
+        </Typography>
+        <Box
+          component="form"
+          onSubmit={handleAddReward}
+          sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}
+        >
+          <TextField
+            label="Reward Name"
+            variant="outlined"
+            required
             value={newReward.name}
-            onChange={(e) => setNewReward({ ...newReward, name: e.target.value })}
-            required
+            onChange={(e) =>
+              setNewReward({ ...newReward, name: e.target.value })
+            }
+            sx={{ minWidth: 220 }}
           />
-          <input
+          <TextField
+            label="Cost in points"
+            variant="outlined"
             type="number"
-            placeholder="Cost in points"
-            value={newReward.cost}
-            onChange={(e) => setNewReward({ ...newReward, cost: e.target.value })}
             required
+            value={newReward.cost}
+            onChange={(e) =>
+              setNewReward({ ...newReward, cost: e.target.value })
+            }
+            sx={{ width: 150 }}
           />
-          <button type="submit">Add Reward</button>
-        </form>
+          <Button type="submit" variant="contained" sx={{ alignSelf: 'center' }}>
+            Add Reward
+          </Button>
+        </Box>
+      </Paper>
 
-        {/* Rewards List */}
-        <div className="rewards-list">
-          <h4>Available Rewards</h4>
-          {rewards.map((rwd) => (
-            <div key={rwd.id} className="reward-item">
-              <p><strong>{rwd.name}</strong> - {rwd.cost} pts</p>
-              {/* If you want to edit or delete a reward, do so similarly with updateDoc/deleteDoc */}
-            </div>
-          ))}
-        </div>
-      </section>
-    </div>
+      {/* Rewards List */}
+      <Paper sx={{ p: 2 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Available Rewards
+        </Typography>
+        {rewards.map((rwd) => (
+          <Box
+            key={rwd.id}
+            sx={{
+              mb: 2,
+              p: 2,
+              border: '1px solid #eee',
+              borderRadius: 2,
+            }}
+          >
+            <Typography>
+              <strong>{rwd.name}</strong> — {rwd.cost} pts
+            </Typography>
+            {/* If you want to edit/delete, do so similarly */}
+          </Box>
+        ))}
+      </Paper>
+    </Container>
   );
 };
 

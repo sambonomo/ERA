@@ -3,6 +3,17 @@ import React, { useState, useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+// MUI imports
+import {
+  Container,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Alert,
+  Paper,
+} from '@mui/material';
+
 const LoginPage = () => {
   const { signIn } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -24,37 +35,52 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="login-page container">
-      <h2>Log In</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleLogin}>
-        <div className="form-group">
-          <label htmlFor="login-email">Email:</label>
-          <input
+    <Container maxWidth="sm" sx={{ py: 6 }}>
+      <Paper sx={{ p: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          Log In
+        </Typography>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
+        <Box
+          component="form"
+          onSubmit={handleLogin}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2, // spacing between inputs
+            mt: 2,
+          }}
+        >
+          <TextField
+            label="Email"
             type="email"
-            id="login-email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="example@company.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
-        </div>
-        <div className="form-group">
-          <label htmlFor="login-password">Password:</label>
-          <input
+
+          <TextField
+            label="Password"
             type="password"
-            id="login-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             required
             placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
-        </div>
-        <button type="submit" className="btn btn-primary">
-          Log In
-        </button>
-      </form>
-    </div>
+
+          <Button type="submit" variant="contained" color="primary">
+            Log In
+          </Button>
+        </Box>
+      </Paper>
+    </Container>
   );
 };
 

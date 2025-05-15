@@ -4,6 +4,15 @@ import { AuthContext } from '../contexts/AuthContext';
 import { db } from '../firebase/config';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 
+// MUI imports
+import {
+  Box,
+  Container,
+  Typography,
+  Grid,
+  Paper,
+} from '@mui/material';
+
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
 
@@ -11,128 +20,162 @@ const Dashboard = () => {
   const [kudosCount, setKudosCount] = useState(0);
   const [anniversaries, setAnniversaries] = useState([]);
 
-  // Example: fetch upcoming birthdays (limiting results)
+  // Fetch upcoming birthdays (limit 5)
   useEffect(() => {
     const employeesRef = collection(db, 'employees');
-    const q = query(employeesRef, orderBy('birthday', 'asc'), limit(5));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const qBday = query(employeesRef, orderBy('birthday', 'asc'), limit(5));
+    const unsub = onSnapshot(qBday, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
       setUpcomingBirthdays(data);
     });
-    return () => unsubscribe();
+    return () => unsub();
   }, []);
 
-  // Example: fetch kudos count
+  // Fetch total kudos count
   useEffect(() => {
     const kudosRef = collection(db, 'kudos');
-    const q = query(kudosRef);
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsub = onSnapshot(kudosRef, (snapshot) => {
       setKudosCount(snapshot.size);
     });
-    return () => unsubscribe();
+    return () => unsub();
   }, []);
 
-  // Example: fetch upcoming anniversaries
+  // Fetch upcoming anniversaries (limit 5)
   useEffect(() => {
     const employeesRef = collection(db, 'employees');
-    const q = query(employeesRef, orderBy('hireDate', 'asc'), limit(5));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const qHire = query(employeesRef, orderBy('hireDate', 'asc'), limit(5));
+    const unsub = onSnapshot(qHire, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
       setAnniversaries(data);
     });
-    return () => unsubscribe();
+    return () => unsub();
   }, []);
 
   return (
-    <div className="dashboard container">
+    <Container sx={{ py: 4 }}>
       {/* Header Section */}
-      <section className="section" style={{ textAlign: 'center' }}>
-        <h1>
+      <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Typography variant="h4" gutterBottom>
           Welcome, {user ? user.displayName || user.email : 'Guest'}!
-        </h1>
-        <p>Here’s what’s happening today at SparkBlaze.</p>
-      </section>
+        </Typography>
+        <Typography variant="body1">
+          Here’s what’s happening today at SparkBlaze.
+        </Typography>
+      </Box>
 
       {/* Stats Section */}
-      <section className="section">
-        <h2>Quick Stats</h2>
-        <div className="card-grid">
-          <div className="card stats-card">
-            <h3>Total Kudos</h3>
-            <p style={{ fontSize: '2rem' }}>{kudosCount}</p>
-          </div>
-          <div className="card stats-card">
-            <h3>Birthdays Soon</h3>
-            <p style={{ fontSize: '2rem' }}>{upcomingBirthdays.length}</p>
-          </div>
-          <div className="card stats-card">
-            <h3>Anniversaries Soon</h3>
-            <p style={{ fontSize: '2rem' }}>{anniversaries.length}</p>
-          </div>
-        </div>
-      </section>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" sx={{ mb: 2 }}>
+          Quick Stats
+        </Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6">Total Kudos</Typography>
+              <Typography variant="h3" sx={{ mt: 1 }}>
+                {kudosCount}
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6">Birthdays Soon</Typography>
+              <Typography variant="h3" sx={{ mt: 1 }}>
+                {upcomingBirthdays.length}
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6">Anniversaries Soon</Typography>
+              <Typography variant="h3" sx={{ mt: 1 }}>
+                {anniversaries.length}
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Box>
 
       {/* Upcoming Birthdays */}
-      <section className="section">
-        <h2>Upcoming Birthdays</h2>
-        <div className="card-grid">
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" sx={{ mb: 2 }}>
+          Upcoming Birthdays
+        </Typography>
+        <Grid container spacing={2}>
           {upcomingBirthdays.map((emp) => (
-            // If you have <BirthdayCard /> replace the card below with it
-            <div key={emp.id} className="card birthday-card">
-              <h4>{emp.name}</h4>
-              {emp.birthday?.seconds ? (
-                <p>
-                  {new Date(emp.birthday.seconds * 1000).toLocaleDateString()}
-                </p>
-              ) : (
-                <p>No birthday info</p>
-              )}
-            </div>
+            <Grid item xs={12} sm={6} md={4} key={emp.id}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6">{emp.name}</Typography>
+                {emp.birthday?.seconds ? (
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    {new Date(emp.birthday.seconds * 1000).toLocaleDateString()}
+                  </Typography>
+                ) : (
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    No birthday info
+                  </Typography>
+                )}
+              </Paper>
+            </Grid>
           ))}
           {upcomingBirthdays.length === 0 && (
-            <p>No upcoming birthdays in the next few days.</p>
+            <Grid item xs={12}>
+              <Typography>No upcoming birthdays in the next few days.</Typography>
+            </Grid>
           )}
-        </div>
-      </section>
+        </Grid>
+      </Box>
 
       {/* Work Anniversaries */}
-      <section className="section">
-        <h2>Upcoming Anniversaries</h2>
-        <div className="card-grid">
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" sx={{ mb: 2 }}>
+          Upcoming Anniversaries
+        </Typography>
+        <Grid container spacing={2}>
           {anniversaries.map((emp) => (
-            <div key={emp.id} className="card anniversary-card">
-              <h4>{emp.name}</h4>
-              {emp.hireDate?.seconds ? (
-                <p>
-                  Hire Date:{' '}
-                  {new Date(emp.hireDate.seconds * 1000).toLocaleDateString()}
-                </p>
-              ) : (
-                <p>No hire date info</p>
-              )}
-            </div>
+            <Grid item xs={12} sm={6} md={4} key={emp.id}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6">{emp.name}</Typography>
+                {emp.hireDate?.seconds ? (
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    Hire Date:{' '}
+                    {new Date(emp.hireDate.seconds * 1000).toLocaleDateString()}
+                  </Typography>
+                ) : (
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    No hire date info
+                  </Typography>
+                )}
+              </Paper>
+            </Grid>
           ))}
           {anniversaries.length === 0 && (
-            <p>No upcoming anniversaries in the next few weeks.</p>
+            <Grid item xs={12}>
+              <Typography>No upcoming anniversaries in the next few weeks.</Typography>
+            </Grid>
           )}
-        </div>
-      </section>
+        </Grid>
+      </Box>
 
-      {/* Kudos Feed */}
-      <section className="section">
-        <h2>Recent Kudos</h2>
-        {/* If you have a <KudosFeed /> component, you can just <KudosFeed /> here */}
-        <div className="card">
-          <p>Embed or display recent kudos here.</p>
-        </div>
-      </section>
-    </div>
+      {/* Kudos Feed Placeholder */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" sx={{ mb: 2 }}>
+          Recent Kudos
+        </Typography>
+        {/* If you have a <KudosFeed /> component, you can place it here. */}
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="body2">
+            Embed or display recent kudos here.
+          </Typography>
+        </Paper>
+      </Box>
+    </Container>
   );
 };
 

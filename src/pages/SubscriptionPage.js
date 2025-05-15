@@ -3,23 +3,36 @@ import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { httpsCallable } from 'firebase/functions';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { db, functions } from '../firebase/config'; // <-- Import here
+import { db, functions } from '../firebase/config';
 import { useStripe } from '@stripe/react-stripe-js';
+
+// MUI imports
+import {
+  Container,
+  Box,
+  Typography,
+  Switch,
+  Grid,
+  Paper,
+  Button,
+  List,
+  ListItem,
+  Alert,
+} from '@mui/material';
 
 const SubscriptionPage = () => {
   const { user } = useContext(AuthContext);
   const stripe = useStripe();
 
-  const [currentPlan, setCurrentPlan] = useState('free'); // default
+  const [currentPlan, setCurrentPlan] = useState('free');
   const [billingCycle, setBillingCycle] = useState('monthly');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  // Real-time subscription status from Firestore
+  // Firestore subscription status
   useEffect(() => {
     if (!user) return;
 
-    // Since we imported 'db', it is now defined
     const userRef = doc(db, 'users', user.uid);
     const unsubscribe = onSnapshot(userRef, (snapshot) => {
       if (snapshot.exists()) {
@@ -29,17 +42,14 @@ const SubscriptionPage = () => {
         }
       }
     });
-
     return () => unsubscribe();
   }, [user]);
 
-  // Toggle billing cycle
+  const createCheckoutSession = httpsCallable(functions, 'createCheckoutSession');
+
   const handleToggle = () => {
     setBillingCycle((prev) => (prev === 'monthly' ? 'annual' : 'monthly'));
   };
-
-  // Create a Stripe Checkout session via our Cloud Function
-  const createCheckoutSession = httpsCallable(functions, 'createCheckoutSession');
 
   const handleSubscribe = async (plan) => {
     if (!user) {
@@ -47,16 +57,14 @@ const SubscriptionPage = () => {
       return;
     }
     if (!stripe) {
-      setMessage('Stripe has not loaded yet. Please try again in a moment.');
+      setMessage('Stripe has not loaded yet. Please try again.');
       return;
     }
-
     setLoading(true);
     setMessage('');
 
     try {
       const { data } = await createCheckoutSession({ plan, billingCycle });
-      // data.sessionId is your Stripe checkout session
       const { sessionId } = data;
 
       // Redirect to Stripe Checkout
@@ -74,115 +82,184 @@ const SubscriptionPage = () => {
 
   if (!user) {
     return (
-      <div className="subscription-page">
-        <h2>Subscription</h2>
-        <p>You must be logged in to manage subscriptions.</p>
-      </div>
+      <Container sx={{ py: 6 }}>
+        <Typography variant="h4" gutterBottom>
+          Subscription
+        </Typography>
+        <Typography>You must be logged in to manage subscriptions.</Typography>
+      </Container>
     );
   }
 
   return (
-    <div className="subscription-page">
-      <h1>Manage Your Subscription</h1>
-      <p>Your current plan: <strong>{currentPlan}</strong></p>
+    <Container sx={{ py: 6 }}>
+      <Typography variant="h4" gutterBottom>
+        Manage Your Subscription
+      </Typography>
+      <Typography variant="body1" sx={{ mb: 2 }}>
+        Your current plan: <strong>{currentPlan}</strong>
+      </Typography>
 
-      {message && <p className="subscription-message">{message}</p>}
-
-      {/* If user is already on Pro or Enterprise, you might show them a cancel/downgrade option */}
-      {currentPlan !== 'pro' && currentPlan !== 'enterprise' && (
-        <div className="subscription-billing-toggle">
-          <span className={billingCycle === 'monthly' ? 'toggle-active' : ''}>
-            Monthly
-          </span>
-          <label className="switch">
-            <input
-              type="checkbox"
-              onChange={handleToggle}
-              checked={billingCycle === 'annual'}
-            />
-            <span className="slider"></span>
-          </label>
-          <span className={billingCycle === 'annual' ? 'toggle-active' : ''}>
-            Annual (Save 10%)
-          </span>
-        </div>
+      {message && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {message}
+        </Alert>
       )}
 
-      <div className="subscription-plans">
-        {/* FREE plan */}
-        <div className="plan-card">
-          <h2>Free</h2>
-          <p>$0 / month</p>
-          <ul>
-            <li>Up to 20 employees</li>
-            <li>Email notifications only</li>
-          </ul>
-          {currentPlan === 'free' ? (
-            <button disabled>Current Plan</button>
-          ) : (
-            <button onClick={() => handleSubscribe('free')} disabled={loading}>
-              Downgrade to Free
-            </button>
-          )}
-        </div>
+      {/* Show billing toggle unless user is on Pro or Enterprise already */}
+      {currentPlan !== 'pro' && currentPlan !== 'enterprise' && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            mb: 4,
+          }}
+        >
+          <Typography
+            variant="body1"
+            sx={{ fontWeight: billingCycle === 'monthly' ? 700 : 400 }}
+          >
+            Monthly
+          </Typography>
+          <Switch
+            checked={billingCycle === 'annual'}
+            onChange={handleToggle}
+            color="primary"
+          />
+          <Typography
+            variant="body1"
+            sx={{ fontWeight: billingCycle === 'annual' ? 700 : 400 }}
+          >
+            Annual (Save 10%)
+          </Typography>
+        </Box>
+      )}
 
-        {/* PRO plan */}
-        {currentPlan !== 'enterprise' && (
-          <div className="plan-card">
-            <h2>Pro</h2>
-            <p>
-              {billingCycle === 'monthly'
-                ? '$49 / month'
-                : '$529 / year' /* 10% off for annual */}
-            </p>
-            <ul>
-              <li>Up to 100 employees</li>
-              <li>Slack/Teams integration</li>
-              <li>Calendar sync, kudos wall, AI messages</li>
-            </ul>
-            {currentPlan === 'pro' ? (
-              <button disabled>Current Plan</button>
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {/* Free Plan */}
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="h5">Free</Typography>
+            <Typography variant="h6" sx={{ mt: 1 }}>
+              $0 / month
+            </Typography>
+            <List sx={{ textAlign: 'left', mt: 2 }}>
+              <ListItem>Up to 20 employees</ListItem>
+              <ListItem>Email notifications only</ListItem>
+            </List>
+            {currentPlan === 'free' ? (
+              <Button variant="outlined" disabled sx={{ mt: 2 }}>
+                Current Plan
+              </Button>
             ) : (
-              <button onClick={() => handleSubscribe('pro')} disabled={loading}>
-                {currentPlan === 'free' ? 'Upgrade to Pro' : 'Switch to Pro'}
-              </button>
+              <Button
+                variant="contained"
+                onClick={() => handleSubscribe('free')}
+                disabled={loading}
+                sx={{ mt: 2 }}
+              >
+                Downgrade to Free
+              </Button>
             )}
-          </div>
+          </Paper>
+        </Grid>
+
+        {/* Pro Plan (skip if current plan is enterprise) */}
+        {currentPlan !== 'enterprise' && (
+          <Grid item xs={12} md={4}>
+            <Paper
+              sx={{
+                p: 3,
+                textAlign: 'center',
+                border: (theme) => `2px solid ${theme.palette.primary.main}`,
+              }}
+            >
+              <Typography variant="h5">Pro</Typography>
+              <Typography variant="h6" sx={{ mt: 1 }}>
+                {billingCycle === 'monthly'
+                  ? '$49 / month'
+                  : '$529 / year'}{' '}
+                {/* 10% off for annual */}
+              </Typography>
+              <List sx={{ textAlign: 'left', mt: 2 }}>
+                <ListItem>Up to 100 employees</ListItem>
+                <ListItem>Slack/Teams integration</ListItem>
+                <ListItem>Calendar sync, kudos wall, AI messages</ListItem>
+              </List>
+              {currentPlan === 'pro' ? (
+                <Button variant="outlined" disabled sx={{ mt: 2 }}>
+                  Current Plan
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => handleSubscribe('pro')}
+                  disabled={loading}
+                  sx={{ mt: 2 }}
+                >
+                  {currentPlan === 'free' ? 'Upgrade to Pro' : 'Switch to Pro'}
+                </Button>
+              )}
+            </Paper>
+          </Grid>
         )}
 
-        {/* ENTERPRISE plan */}
-        <div className="plan-card">
-          <h2>Enterprise</h2>
-          <p>Contact us</p>
-          <ul>
-            <li>Unlimited employees</li>
-            <li>Full reward system & analytics</li>
-            <li>HR integrations, 24/7 support</li>
-          </ul>
-          {currentPlan === 'enterprise' ? (
-            <button disabled>Current Plan</button>
-          ) : (
-            <button onClick={() => handleSubscribe('enterprise')} disabled={loading}>
-              {currentPlan === 'free' || currentPlan === 'pro'
-                ? 'Upgrade to Enterprise'
-                : 'Contact Sales'
-              }
-            </button>
-          )}
-        </div>
-      </div>
+        {/* Enterprise Plan */}
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="h5">Enterprise</Typography>
+            <Typography variant="h6" sx={{ mt: 1 }}>
+              Contact us
+            </Typography>
+            <List sx={{ textAlign: 'left', mt: 2 }}>
+              <ListItem>Unlimited employees</ListItem>
+              <ListItem>Full reward system &amp; analytics</ListItem>
+              <ListItem>HR integrations, 24/7 support</ListItem>
+            </List>
+            {currentPlan === 'enterprise' ? (
+              <Button variant="outlined" disabled sx={{ mt: 2 }}>
+                Current Plan
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={() => handleSubscribe('enterprise')}
+                disabled={loading}
+                sx={{ mt: 2 }}
+              >
+                {currentPlan === 'free' || currentPlan === 'pro'
+                  ? 'Upgrade to Enterprise'
+                  : 'Contact Sales'}
+              </Button>
+            )}
+          </Paper>
+        </Grid>
+      </Grid>
 
       {/* Cancel or Downgrade if user is on Pro/Enterprise */}
       {(currentPlan === 'pro' || currentPlan === 'enterprise') && (
-        <div className="cancel-subscription">
-          <h3>Need to cancel?</h3>
-          <button disabled={loading} onClick={() => handleSubscribe('free')}>
+        <Box sx={{ border: '1px solid #ccc', p: 3, borderRadius: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Need to cancel?
+          </Typography>
+          <Button
+            variant="contained"
+            color="warning"
+            disabled={loading}
+            onClick={() => handleSubscribe('free')}
+            sx={{ mb: 1 }}
+          >
             Cancel Subscription / Downgrade to Free
-          </button>
-          <p>Note: You will immediately lose Pro/Enterprise features upon cancellation.</p>
-        </div>
+          </Button>
+          <Typography variant="body2">
+            Note: You will immediately lose Pro/Enterprise features upon
+            cancellation.
+          </Typography>
+        </Box>
       )}
-    </div>
+    </Container>
   );
 };
 

@@ -1,230 +1,328 @@
 // src/pages/LandingPage.js
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
+// MUI imports
+import {
+  Box,
+  Container,
+  Grid,
+  Paper,
+  Typography,
+  Button,
+} from '@mui/material';
 
 const LandingPage = () => {
   return (
-    <div className="landing-page">
-      {/* HERO SECTION */}
-      <header className="hero-section section">
-        <div className="container" style={styles.heroContainer}>
-          {/* Left Column: Text */}
-          <div style={styles.heroText}>
-            <h1>Revolutionize Employee Recognition</h1>
-            <p className="hero-subtitle">
-              SparkBlaze is the <strong>best-in-class</strong> platform for celebrating
-              birthdays, work anniversaries, and peer recognition—all from a single hub.
-            </p>
-            <p className="hero-subtitle-secondary">
-              Unleash a culture of appreciation with AI-powered messages,
-              automated reminders, and real-time kudos feeds.
-            </p>
-            <div style={styles.heroCtas}>
-              <Link to="/signup" className="btn btn-primary" style={{ marginRight: '1rem' }}>
-                Get Started for Free
-              </Link>
-              <Link to="/pricing" className="btn btn-secondary">
-                View Pricing
-              </Link>
-            </div>
-            <div style={{ marginTop: '1rem' }}>
-              <Link to="/how-it-works" className="btn btn-primary btn-outline">
-                See How It Works
-              </Link>
-            </div>
-          </div>
+    <>
+      {/* Hero Section */}
+      <Box
+        sx={{
+          py: 6,
+          backgroundColor: 'background.paper', // or keep it custom
+        }}
+      >
+        <Container>
+          <Grid container spacing={4} alignItems="center">
+            {/* Left Column: Text */}
+            <Grid item xs={12} md={6}>
+              <Typography variant="h3" gutterBottom>
+                Revolutionize Employee Recognition
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                SparkBlaze is the <strong>best-in-class</strong> platform for
+                celebrating birthdays, work anniversaries, and peer
+                recognition—all from a single hub. Unleash a culture of
+                appreciation with AI-powered messages, automated reminders, and
+                real-time kudos feeds.
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+                <Button
+                  component={RouterLink}
+                  to="/signup"
+                  variant="contained"
+                  color="primary"
+                >
+                  Get Started for Free
+                </Button>
+                <Button
+                  component={RouterLink}
+                  to="/pricing"
+                  variant="outlined"
+                  color="primary"
+                >
+                  View Pricing
+                </Button>
+              </Box>
+              <Box sx={{ mt: 2 }}>
+                <Button
+                  component={RouterLink}
+                  to="/how-it-works"
+                  variant="contained"
+                  color="secondary"
+                >
+                  See How It Works
+                </Button>
+              </Box>
+            </Grid>
 
-          {/* Right Column: (Optional) Hero Image */}
-          <div style={styles.heroImage}>
-            {/* If you have a hero illustration, un-comment the img */}
-            {/* 
-            <img
-              src="/assets/hero-illustration.png"
-              alt="Employee recognition illustration"
-              style={{ width: '100%', maxWidth: '400px', height: 'auto' }}
-            />
-            */}
-          </div>
-        </div>
-      </header>
+            {/* Right Column: Optional Hero Image */}
+            <Grid item xs={12} md={6} textAlign="center">
+              {/* Uncomment or replace with your illustration */}
+              {/* <img
+                src="/assets/hero-illustration.png"
+                alt="Employee recognition illustration"
+                style={{ width: '100%', maxWidth: '400px', height: 'auto' }}
+              /> */}
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
 
-      {/* CORE FEATURES OVERVIEW */}
-      <section className="features-overview section">
-        <div className="container">
-          <h2>Why SparkBlaze?</h2>
-          <p className="section-description">
-            Our mission is to ignite employee happiness by blending automated milestones
-            with a real-time recognition feed. Track birthdays, service anniversaries,
-            kudos, and more—effortlessly.
-          </p>
-          <div className="card-grid">
-            <div className="card">
-              <h3>Automated Birthday Reminders</h3>
-              <p>
-                Never miss a birthday again. SparkBlaze sends Slack, Teams, or email
-                notifications so everyone can celebrate together.
-              </p>
-            </div>
-            <div className="card">
-              <h3>Service Anniversaries</h3>
-              <p>
-                Recognize milestones like 1-year, 5-year, or 10-year anniversaries with
-                heartfelt messages. SparkBlaze keeps track automatically.
-              </p>
-            </div>
-            <div className="card">
-              <h3>Peer-to-Peer Kudos</h3>
-              <p>
-                Foster a culture of collaboration and appreciation. Public shoutouts,
-                badges, and comments light up your Kudos Wall—instantly.
-              </p>
-            </div>
-            <div className="card">
-              <h3>AI-Powered Suggestions</h3>
-              <p>
-                Unsure what to say? Let SparkBlaze craft a thoughtful note or
-                congratulations message—personalize and send with one click.
-              </p>
-            </div>
-            <div className="card">
-              <h3>Reward Marketplace</h3>
-              <p>
-                Offer points for each kudos received and redeem them for gift cards,
-                company swag, or charitable donations (Pro &amp; Enterprise tiers).
-              </p>
-            </div>
-            <div className="card">
-              <h3>Advanced Analytics</h3>
-              <p>
-                Monitor morale and engagement with real-time dashboards. Identify top
-                contributors, highlight achievements, and spot burnout early.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Core Features Overview */}
+      <Box sx={{ py: 6 }}>
+        <Container>
+          <Typography variant="h4" gutterBottom>
+            Why SparkBlaze?
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 4 }}>
+            Our mission is to ignite employee happiness by blending automated
+            milestones with a real-time recognition feed. Track birthdays,
+            service anniversaries, kudos, and more—effortlessly.
+          </Typography>
 
-      {/* INTEGRATIONS / ADVANCED SECTION */}
-      <section className="integrations-section section">
-        <div className="container">
-          <h2>Seamless Integrations</h2>
-          <p>
-            Stay in the flow of work with built-in Slack, Microsoft Teams, and Google
-            Calendar sync. Export data to your existing HR tools or intranet with ease.
-          </p>
-          <div className="integration-logos">
-            {/* Example placeholders for logos */}
-            <img src="/assets/slack-logo.png" alt="Slack" />
-            <img src="/assets/teams-logo.png" alt="Teams" />
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6} md={4}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6">
+                  Automated Birthday Reminders
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  Never miss a birthday again. SparkBlaze sends Slack, Teams, or
+                  email notifications so everyone can celebrate together.
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6">Service Anniversaries</Typography>
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  Recognize milestones like 1-year, 5-year, or 10-year
+                  anniversaries with heartfelt messages. SparkBlaze keeps track
+                  automatically.
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6">Peer-to-Peer Kudos</Typography>
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  Foster a culture of collaboration and appreciation. Public
+                  shoutouts, badges, and comments light up your Kudos Wall—
+                  instantly.
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6">AI-Powered Suggestions</Typography>
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  Unsure what to say? Let SparkBlaze craft a thoughtful note or
+                  congratulations message—personalize and send with one click.
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6">Reward Marketplace</Typography>
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  Offer points for each kudos received and redeem them for gift
+                  cards, company swag, or charitable donations (Pro &amp;
+                  Enterprise tiers).
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6">Advanced Analytics</Typography>
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  Monitor morale and engagement with real-time dashboards.
+                  Identify top contributors, highlight achievements, and spot
+                  burnout early.
+                </Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* Integrations / Advanced Section */}
+      <Box sx={{ py: 6, backgroundColor: 'background.paper' }}>
+        <Container>
+          <Typography variant="h4" gutterBottom>
+            Seamless Integrations
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 4 }}>
+            Stay in the flow of work with built-in Slack, Microsoft Teams, and
+            Google Calendar sync. Export data to your existing HR tools or
+            intranet with ease.
+          </Typography>
+
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <img src="/assets/slack-logo.png" alt="Slack" height={50} />
+            <img src="/assets/teams-logo.png" alt="Teams" height={50} />
             <img
               src="/assets/google-calendar-logo.png"
               alt="Google Calendar"
+              height={50}
             />
-          </div>
-        </div>
-      </section>
+          </Box>
+        </Container>
+      </Box>
 
-      {/* TESTIMONIALS */}
-      <section className="testimonials section">
-        <div className="container">
-          <h2>What Our Customers Say</h2>
-          <div className="card-grid">
-            <blockquote className="card testimonial-item">
-              “SparkBlaze completely transformed our company culture! Everyone loves
-              seeing birthdays and kudos in real time—and it’s a breeze to set up.”
-              <cite>– Lisa, HR Manager at TechCo</cite>
-            </blockquote>
-            <blockquote className="card testimonial-item">
-              “In just a few months, morale went through the roof. Our employees feel
-              recognized and appreciated every day.”
-              <cite>– Mark, CEO of InnovateCorp</cite>
-            </blockquote>
-            <blockquote className="card testimonial-item">
-              “The AI-powered message suggestions saved me so much time. I can send
-              thoughtful notes without worrying about writer’s block!”
-              <cite>– Ashley, Team Lead at GrowthSpark</cite>
-            </blockquote>
-          </div>
-        </div>
-      </section>
+      {/* Testimonials */}
+      <Box sx={{ py: 6 }}>
+        <Container>
+          <Typography variant="h4" gutterBottom>
+            What Our Customers Say
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 3 }}>
+                <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
+                  “SparkBlaze completely transformed our company culture!
+                  Everyone loves seeing birthdays and kudos in real
+                  time—and it’s a breeze to set up.”
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  – Lisa, HR Manager at TechCo
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 3 }}>
+                <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
+                  “In just a few months, morale went through the roof. Our
+                  employees feel recognized and appreciated every day.”
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  – Mark, CEO of InnovateCorp
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 3 }}>
+                <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
+                  “The AI-powered message suggestions saved me so much time. I
+                  can send thoughtful notes without worrying about writer’s
+                  block!”
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  – Ashley, Team Lead at GrowthSpark
+                </Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
 
-      {/* FAQ / ADDITIONAL INFO */}
-      <section className="faq-section section">
-        <div className="container">
-          <h2>Frequently Asked Questions</h2>
-          <div className="faq-item">
-            <h4>How easy is it to set up SparkBlaze?</h4>
-            <p>
-              Incredibly easy! You can have your entire organization onboarded within
-              minutes. No special IT knowledge required.
-            </p>
-          </div>
-          <div className="faq-item">
-            <h4>Do you offer a free plan?</h4>
-            <p>
-              Yes! Our Free tier accommodates up to 20 employees with email notifications
-              only. Upgrade anytime for advanced features.
-            </p>
-          </div>
-          <div className="faq-item">
-            <h4>What if I need customized integrations?</h4>
-            <p>
+      {/* FAQ / Additional Info */}
+      <Box sx={{ py: 6, backgroundColor: 'background.paper' }}>
+        <Container>
+          <Typography variant="h4" gutterBottom>
+            Frequently Asked Questions
+          </Typography>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6">How easy is it to set up SparkBlaze?</Typography>
+            <Typography variant="body1">
+              Incredibly easy! You can have your entire organization onboarded
+              within minutes. No special IT knowledge required.
+            </Typography>
+          </Box>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6">Do you offer a free plan?</Typography>
+            <Typography variant="body1">
+              Yes! Our Free tier accommodates up to 20 employees with email
+              notifications only. Upgrade anytime for advanced features.
+            </Typography>
+          </Box>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6">What if I need customized integrations?</Typography>
+            <Typography variant="body1">
               Our Enterprise plan supports custom integrations and VIP support.
-              <Link to="/contact"> Contact us</Link> for more info.
-            </p>
-          </div>
-        </div>
-      </section>
+              <Button
+                component={RouterLink}
+                to="/contact"
+                variant="text"
+                color="primary"
+                sx={{ textTransform: 'none', ml: 1 }}
+              >
+                Contact us
+              </Button>
+              for more info.
+            </Typography>
+          </Box>
+        </Container>
+      </Box>
 
-      {/* CTA SECTION */}
-      <section className="cta-section section" style={{ backgroundColor: 'var(--color-primary)', color: 'white' }}>
-        <div className="container" style={{ textAlign: 'center' }}>
-          <h2>Ready to Spark Engagement?</h2>
-          <p>
-            Get started in under 5 minutes—no complex setup, no hassle. Join SparkBlaze
-            today and let the recognition begin!
-          </p>
-          <Link to="/signup" className="btn btn-secondary">
+      {/* CTA Section */}
+      <Box
+        sx={{
+          py: 6,
+          textAlign: 'center',
+          color: '#fff',
+          backgroundColor: 'primary.main',
+        }}
+      >
+        <Container>
+          <Typography variant="h4" gutterBottom>
+            Ready to Spark Engagement?
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
+            Get started in under 5 minutes—no complex setup, no hassle.
+            Join SparkBlaze today and let the recognition begin!
+          </Typography>
+          <Button
+            component={RouterLink}
+            to="/signup"
+            variant="contained"
+            color="secondary"
+          >
             Sign Up Now
-          </Link>
-        </div>
-      </section>
+          </Button>
+        </Container>
+      </Box>
 
-      {/* FOOTER */}
-      <footer className="landing-footer section">
-        <div className="container">
-          <div className="footer-links">
-            <Link to="/pricing">Pricing</Link>
-            <Link to="/features">Features</Link>
-            <Link to="/demo">Book a Demo</Link>
-            <Link to="/contact">Contact Us</Link>
-          </div>
-          <p>© {new Date().getFullYear()} SparkBlaze Inc. All rights reserved.</p>
-        </div>
-      </footer>
-    </div>
+      {/* Footer */}
+      <Box
+        component="footer"
+        sx={{
+          py: 4,
+          backgroundColor: 'background.paper',
+          textAlign: 'center',
+        }}
+      >
+        <Container>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: 2 }}>
+            <Button component={RouterLink} to="/pricing" variant="text">
+              Pricing
+            </Button>
+            <Button component={RouterLink} to="/features" variant="text">
+              Features
+            </Button>
+            <Button component={RouterLink} to="/demo" variant="text">
+              Book a Demo
+            </Button>
+            <Button component={RouterLink} to="/contact" variant="text">
+              Contact Us
+            </Button>
+          </Box>
+          <Typography variant="body2" color="textSecondary">
+            © {new Date().getFullYear()} SparkBlaze Inc. All rights reserved.
+          </Typography>
+        </Container>
+      </Box>
+    </>
   );
-};
-
-const styles = {
-  heroContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '2rem',
-  },
-  heroText: {
-    flex: '1 1 50%',
-  },
-  heroCtas: {
-    marginTop: '1rem',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  heroImage: {
-    flex: '1 1 50%',
-    textAlign: 'center',
-  },
 };
 
 export default LandingPage;

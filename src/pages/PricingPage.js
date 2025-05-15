@@ -1,10 +1,23 @@
 // src/pages/PricingPage.js
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 
+// MUI imports
+import {
+  Container,
+  Box,
+  Typography,
+  Switch,
+  Grid,
+  Paper,
+  Button,
+  List,
+  ListItem,
+  Divider,
+} from '@mui/material';
 
 const PricingPage = () => {
-  // Optional: Toggle between monthly & annual billing
+  // Toggle between monthly & annual billing
   const [billingCycle, setBillingCycle] = useState('monthly');
 
   const handleToggle = () => {
@@ -14,127 +27,198 @@ const PricingPage = () => {
   // Example monthly vs annual costs
   const freePrice = '$0';
   const proMonthlyPrice = '$49';
-  const proAnnualPrice = '$529';  // e.g. $529/year for a small discount
+  const proAnnualPrice = '$529'; // e.g. $529/year for a small discount
   const enterprisePrice = 'Contact Us';
 
   return (
-    <div className="pricing-page">
-      <header className="pricing-header">
-        <h1 className="pricing-title">Choose Your Plan</h1>
-        <p className="pricing-subtitle">
+    <Container sx={{ py: 6 }}>
+      <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Typography variant="h3" gutterBottom>
+          Choose Your Plan
+        </Typography>
+        <Typography variant="body1">
           Simple, transparent pricing. No hidden fees—cancel anytime.
-        </p>
-      </header>
+        </Typography>
+      </Box>
 
-      {/* Billing Toggle (Monthly / Annual) */}
-      <div className="billing-toggle">
-        <span className={billingCycle === 'monthly' ? 'toggle-active' : ''}>
+      {/* Billing Toggle */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
+        <Typography
+          variant="body1"
+          sx={{ mr: 1, fontWeight: billingCycle === 'monthly' ? 600 : 400 }}
+        >
           Monthly
-        </span>
-        <label className="switch">
-          <input
-            type="checkbox"
-            onChange={handleToggle}
-            checked={billingCycle === 'annual'}
-          />
-          <span className="slider"></span>
-        </label>
-        <span className={billingCycle === 'annual' ? 'toggle-active' : ''}>
+        </Typography>
+        <Switch
+          checked={billingCycle === 'annual'}
+          onChange={handleToggle}
+          color="primary"
+        />
+        <Typography
+          variant="body1"
+          sx={{ ml: 1, fontWeight: billingCycle === 'annual' ? 600 : 400 }}
+        >
           Annual (Save ~10%)
-        </span>
-      </div>
+        </Typography>
+      </Box>
 
-      <div className="pricing-table">
+      {/* Plan Cards */}
+      <Grid container spacing={3} sx={{ mb: 6 }}>
         {/* Free Plan */}
-        <div className="plan-card">
-          <h2>Free</h2>
-          <p className="plan-price">{freePrice}/month</p>
-          <ul className="plan-features">
-            <li>Up to 20 employees</li>
-            <li>Email notifications only</li>
-            <li>Basic recognition feed</li>
-            <li>Community support</li>
-          </ul>
-          <Link to="/signup?plan=free" className="cta-button">
-            Start Free
-          </Link>
-        </div>
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 3, textAlign: 'center', position: 'relative' }}>
+            <Typography variant="h5">Free</Typography>
+            <Typography variant="h4" sx={{ mt: 1 }}>
+              {freePrice}/month
+            </Typography>
+            <List sx={{ mt: 2 }}>
+              <ListItem>Up to 20 employees</ListItem>
+              <ListItem>Email notifications only</ListItem>
+              <ListItem>Basic recognition feed</ListItem>
+              <ListItem>Community support</ListItem>
+            </List>
+            <Button
+              component={RouterLink}
+              to="/signup?plan=free"
+              variant="contained"
+              sx={{ mt: 2 }}
+            >
+              Start Free
+            </Button>
+          </Paper>
+        </Grid>
 
         {/* Pro Plan */}
-        <div className="plan-card plan-popular">
-          <div className="plan-popular-ribbon">Most Popular</div>
-          <h2>Pro</h2>
-          <p className="plan-price">
-            {billingCycle === 'monthly' ? proMonthlyPrice : proAnnualPrice}
-            {billingCycle === 'annual' ? '/year' : '/month'}
-          </p>
-          <ul className="plan-features">
-            <li>Up to 100 employees</li>
-            <li>Slack/Teams integration</li>
-            <li>Calendar sync (Google, Outlook)</li>
-            <li>Kudos wall & AI message suggestions</li>
-            <li>Priority email support</li>
-          </ul>
-          <Link to="/signup?plan=pro" className="cta-button">
-            Go Pro
-          </Link>
-        </div>
+        <Grid item xs={12} md={4}>
+          <Paper
+            sx={{
+              p: 3,
+              textAlign: 'center',
+              position: 'relative',
+              border: (theme) => `2px solid ${theme.palette.primary.main}`,
+            }}
+          >
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                backgroundColor: 'secondary.main',
+                color: '#fff',
+                px: 2,
+                py: 0.5,
+                borderBottomLeftRadius: 8,
+              }}
+            >
+              Most Popular
+            </Box>
+            <Typography variant="h5">Pro</Typography>
+            <Typography variant="h4" sx={{ mt: 1 }}>
+              {billingCycle === 'monthly' ? proMonthlyPrice : proAnnualPrice}
+              {billingCycle === 'annual' ? '/year' : '/month'}
+            </Typography>
+            <List sx={{ mt: 2 }}>
+              <ListItem>Up to 100 employees</ListItem>
+              <ListItem>Slack/Teams integration</ListItem>
+              <ListItem>Calendar sync (Google, Outlook)</ListItem>
+              <ListItem>Kudos wall & AI message suggestions</ListItem>
+              <ListItem>Priority email support</ListItem>
+            </List>
+            <Button
+              component={RouterLink}
+              to="/signup?plan=pro"
+              variant="contained"
+              color="secondary"
+              sx={{ mt: 2 }}
+            >
+              Go Pro
+            </Button>
+          </Paper>
+        </Grid>
 
         {/* Enterprise Plan */}
-        <div className="plan-card">
-          <h2>Enterprise</h2>
-          <p className="plan-price">{enterprisePrice}</p>
-          <ul className="plan-features">
-            <li>Unlimited employees</li>
-            <li>Full reward system & analytics</li>
-            <li>HR integrations (BambooHR, Workday, etc.)</li>
-            <li>Dedicated success manager</li>
-            <li>24/7 phone & chat support</li>
-          </ul>
-          <Link to="/contact-sales" className="cta-button">
-            Contact Sales
-          </Link>
-        </div>
-      </div>
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 3, textAlign: 'center', position: 'relative' }}>
+            <Typography variant="h5">Enterprise</Typography>
+            <Typography variant="h4" sx={{ mt: 1 }}>
+              {enterprisePrice}
+            </Typography>
+            <List sx={{ mt: 2 }}>
+              <ListItem>Unlimited employees</ListItem>
+              <ListItem>Full reward system & analytics</ListItem>
+              <ListItem>HR integrations (BambooHR, Workday, etc.)</ListItem>
+              <ListItem>Dedicated success manager</ListItem>
+              <ListItem>24/7 phone & chat support</ListItem>
+            </List>
+            <Button
+              component={RouterLink}
+              to="/contact-sales"
+              variant="contained"
+              sx={{ mt: 2 }}
+            >
+              Contact Sales
+            </Button>
+          </Paper>
+        </Grid>
+      </Grid>
 
       {/* Additional Info / FAQ */}
-      <section className="pricing-faq">
-        <h3>Frequently Asked Questions</h3>
-        <div className="faq-item">
-          <h4>Do you offer a trial period for Pro?</h4>
-          <p>
-            Yes. When you sign up for Pro, you’ll have a 14-day free trial with 
+      <Box sx={{ mb: 6 }}>
+        <Typography variant="h4" sx={{ mb: 2 }}>
+          Frequently Asked Questions
+        </Typography>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h6">Do you offer a trial period for Pro?</Typography>
+          <Typography variant="body1">
+            Yes. When you sign up for Pro, you’ll have a 14-day free trial with
             full access to Pro features—no credit card required upfront.
-          </p>
-        </div>
-        <div className="faq-item">
-          <h4>Can I switch between monthly and annual billing?</h4>
-          <p>
-            Absolutely. You can update your billing preference at any time in your 
-            account settings.
-          </p>
-        </div>
-        <div className="faq-item">
-          <h4>What if I need a custom solution?</h4>
-          <p>
-            Enterprise clients often require custom integrations or security features. 
-            <Link to="/contact-sales"> Contact our sales team</Link> to discuss your specific needs.
-          </p>
-        </div>
-      </section>
+          </Typography>
+        </Box>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h6">
+            Can I switch between monthly and annual billing?
+          </Typography>
+          <Typography variant="body1">
+            Absolutely. You can update your billing preference at any time in
+            your account settings.
+          </Typography>
+        </Box>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h6">What if I need a custom solution?</Typography>
+          <Typography variant="body1">
+            Enterprise clients often require custom integrations or security features.
+            <Button
+              component={RouterLink}
+              to="/contact-sales"
+              variant="text"
+              sx={{ textTransform: 'none', ml: 1 }}
+            >
+              Contact our sales team
+            </Button>
+            to discuss your specific needs.
+          </Typography>
+        </Box>
+      </Box>
 
       {/* Final CTA Section */}
-      <section className="pricing-cta">
-        <h2>Still Not Sure?</h2>
-        <p>
-          Book a demo call to see SparkBlaze in action. We’ll tailor a 
-          walkthrough to your team’s unique needs.
-        </p>
-        <Link to="/demo" className="cta-big-button">
+      <Box sx={{ textAlign: 'center', mb: 6 }}>
+        <Typography variant="h4" sx={{ mb: 2 }}>
+          Still Not Sure?
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 2 }}>
+          Book a demo call to see SparkBlaze in action. We’ll tailor a walkthrough
+          to your team’s unique needs.
+        </Typography>
+        <Button
+          component={RouterLink}
+          to="/demo"
+          variant="contained"
+          color="primary"
+        >
           Book a Demo
-        </Link>
-      </section>
-    </div>
+        </Button>
+      </Box>
+    </Container>
   );
 };
 

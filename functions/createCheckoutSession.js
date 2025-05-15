@@ -3,56 +3,51 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const Stripe = require('stripe');
 
-// 1) Use environment variables for Stripe secret, or set them with Firebase functions config
-//    e.g. firebase functions:config:set stripe.secret_key="sk_test_123" stripe.price_pro_monthly="price_abc" ...
+// Load Stripe credentials and price IDs from functions config
+// e.g. firebase functions:config:set stripe.secret_key="sk_test_123" ...
 const stripe = Stripe(functions.config().stripe.secret_key);
-
-// Example: environment config for different prices
-// firebase functions:config:set stripe.price_pro_monthly="price_ABC123"
-// firebase functions:config:set stripe.price_pro_annual="price_ABC123_annual"
-// firebase functions:config:set stripe.price_enterprise_monthly="price_ENTERPRISE_MONTHLY"
-// etc.
 const PRICE_PRO_MONTHLY = functions.config().stripe.price_pro_monthly;
 const PRICE_PRO_ANNUAL = functions.config().stripe.price_pro_annual;
-const PRICE_ENTERPRISE_MONTHLY = functions.config().stripe.price_enterprise_monthly; 
-// Or price_enterprise_annual, etc.
+const PRICE_ENTERPRISE_MONTHLY = functions.config().stripe.price_enterprise_monthly;
+// etc.
 
 exports.createCheckoutSession = functions.https.onCall(async (data, context) => {
-  // Ensure user is authenticated
+  // Must be logged in
   if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'User must be logged in.');
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'User must be logged in.'
+    );
   }
 
   const uid = context.auth.uid;
-  const { plan, billingCycle } = data; // e.g. plan = 'pro', billingCycle = 'monthly' or 'annual'
+  const { plan, billingCycle } = data;
 
-  // 2) If user chooses free plan, we might skip Stripe and just downgrade
+  // If user chooses free
   if (plan === 'free') {
-    // Example: update Firestore doc to reflect free plan immediately
-    await admin.firestore().collection('users').doc(uid).set({
-      plan: 'free',
-      subscriptionStatus: 'active',
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    }, { merge: true });
-
+    await admin.firestore().collection('users').doc(uid).set(
+      {
+        plan: 'free',
+        subscriptionStatus: 'active',
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
     return { sessionId: null, message: 'Switched to Free plan (no checkout needed).' };
   }
 
-  // 3) Determine the correct price ID
+  // Determine Stripe price ID
   let priceId = '';
   if (plan === 'pro') {
     if (billingCycle === 'annual') {
-      priceId = PRICE_PRO_ANNUAL; // e.g. 'price_ABC123_annual'
+      priceId = PRICE_PRO_ANNUAL; 
     } else {
-      priceId = PRICE_PRO_MONTHLY; // e.g. 'price_ABC123'
+      priceId = PRICE_PRO_MONTHLY;
     }
   } else if (plan === 'enterprise') {
-    // Possibly you handle enterprise differently, or have an enterprise price
     if (PRICE_ENTERPRISE_MONTHLY) {
-      // If you do have an enterprise monthly price:
       priceId = PRICE_ENTERPRISE_MONTHLY;
     } else {
-      // Or you might choose to just say "Contact Sales" for enterprise
       throw new functions.https.HttpsError(
         'failed-precondition',
         'Enterprise plan requires contact with sales.'
@@ -65,8 +60,11 @@ exports.createCheckoutSession = functions.https.onCall(async (data, context) => 
     );
   }
 
-  // 4) Create a Stripe Checkout Session
   try {
+    // Replace with your actual domain (local dev or production):
+    const domain = 'http://localhost:3000'; 
+    // or e.g. 'https://sparkblaze.yourdomain.com'
+    
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'subscription',
@@ -76,12 +74,9 @@ exports.createCheckoutSession = functions.https.onCall(async (data, context) => 
           quantity: 1,
         },
       ],
-      // example success/cancel URLs (replace with your actual domain/routes)
-      success_url: 'https://your-app.com/subscription-success',
-      cancel_url: 'https://your-app.com/subscription-cancel',
-      // Optional: capture email in checkout if not already known
+      success_url: `${domain}/subscription-success`,
+      cancel_url: `${domain}/subscription-cancel`,
       customer_email: context.auth.token.email,
-      // If you want to store a reference to your user in Stripe, you can do it via metadata or pass `customer`
       // metadata: { firebaseUid: uid },
     });
 
