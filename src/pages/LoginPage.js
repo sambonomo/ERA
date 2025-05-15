@@ -14,6 +14,10 @@ import {
   Paper,
 } from '@mui/material';
 
+/**
+ * LoginPage - Provides a login form for users to authenticate.
+ * Uses MUI TextField and Button for a modern, responsive layout.
+ */
 const LoginPage = () => {
   const { signIn } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -41,6 +45,7 @@ const LoginPage = () => {
           Log In
         </Typography>
 
+        {/* If there's an error, display it as an Alert */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}

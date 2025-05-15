@@ -11,6 +11,11 @@ import {
   Button,
 } from '@mui/material';
 
+/**
+ * LandingPage - The main marketing/intro page for SparkBlaze.
+ * Uses Material UI Grid, Boxes, and Typography to create a
+ * polished, mobile-responsive layout.
+ */
 const LandingPage = () => {
   return (
     <>
@@ -18,7 +23,7 @@ const LandingPage = () => {
       <Box
         sx={{
           py: 6,
-          backgroundColor: 'background.paper', // or keep it custom
+          backgroundColor: 'background.paper',
         }}
       >
         <Container>
@@ -68,11 +73,13 @@ const LandingPage = () => {
             {/* Right Column: Optional Hero Image */}
             <Grid item xs={12} md={6} textAlign="center">
               {/* Uncomment or replace with your illustration */}
-              {/* <img
+              {/* 
+              <img
                 src="/assets/hero-illustration.png"
                 alt="Employee recognition illustration"
                 style={{ width: '100%', maxWidth: '400px', height: 'auto' }}
-              /> */}
+              />
+              */}
             </Grid>
           </Grid>
         </Container>
@@ -93,9 +100,7 @@ const LandingPage = () => {
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={4}>
               <Paper sx={{ p: 2 }}>
-                <Typography variant="h6">
-                  Automated Birthday Reminders
-                </Typography>
+                <Typography variant="h6">Automated Birthday Reminders</Typography>
                 <Typography variant="body2" sx={{ mt: 1 }}>
                   Never miss a birthday again. SparkBlaze sends Slack, Teams, or
                   email notifications so everyone can celebrate together.

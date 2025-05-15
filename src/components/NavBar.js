@@ -10,6 +10,11 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 
+/**
+ * NavBar - A top navigation bar showing SparkBlaze brand and route-based buttons.
+ * Switches between "Log In / Sign Up" vs. "Dashboard / Rewards / Subscription / Log Out" 
+ * depending on whether the user is logged in.
+ */
 const NavBar = () => {
   const { user, logOut } = useContext(AuthContext);
 
@@ -25,7 +30,7 @@ const NavBar = () => {
   return (
     <AppBar position="static">
       <Toolbar>
-        {/* Brand / Logo */}
+        {/* Brand / Logo linking to Home */}
         <Typography
           variant="h6"
           component={RouterLink}
@@ -33,7 +38,7 @@ const NavBar = () => {
           sx={{
             flexGrow: 1,
             textDecoration: 'none',
-            color: 'inherit', // so it matches AppBar text color
+            color: 'inherit', // Use AppBar's text color
           }}
         >
           SparkBlaze
@@ -53,6 +58,7 @@ const NavBar = () => {
             </Button>
           </Stack>
         )}
+
         {user && (
           <Stack direction="row" spacing={2}>
             <Button component={RouterLink} to="/dashboard" color="inherit">

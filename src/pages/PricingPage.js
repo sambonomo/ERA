@@ -16,6 +16,10 @@ import {
   Divider,
 } from '@mui/material';
 
+/**
+ * PricingPage - Displays subscription tiers with optional monthly/annual toggle.
+ * Uses MUI Grid and Paper for the plan cards. 
+ */
 const PricingPage = () => {
   // Toggle between monthly & annual billing
   const [billingCycle, setBillingCycle] = useState('monthly');
@@ -27,11 +31,12 @@ const PricingPage = () => {
   // Example monthly vs annual costs
   const freePrice = '$0';
   const proMonthlyPrice = '$49';
-  const proAnnualPrice = '$529'; // e.g. $529/year for a small discount
+  const proAnnualPrice = '$529'; // e.g. $529/year for a ~10% discount
   const enterprisePrice = 'Contact Us';
 
   return (
     <Container sx={{ py: 6 }}>
+      {/* Page Header */}
       <Box sx={{ textAlign: 'center', mb: 4 }}>
         <Typography variant="h3" gutterBottom>
           Choose Your Plan
@@ -41,8 +46,15 @@ const PricingPage = () => {
         </Typography>
       </Box>
 
-      {/* Billing Toggle */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
+      {/* Billing Toggle (Monthly / Annual) */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          mb: 4,
+        }}
+      >
         <Typography
           variant="body1"
           sx={{ mr: 1, fontWeight: billingCycle === 'monthly' ? 600 : 400 }}
@@ -98,6 +110,7 @@ const PricingPage = () => {
               border: (theme) => `2px solid ${theme.palette.primary.main}`,
             }}
           >
+            {/* Ribbon for 'Most Popular' */}
             <Box
               sx={{
                 position: 'absolute',
@@ -145,10 +158,10 @@ const PricingPage = () => {
             </Typography>
             <List sx={{ mt: 2 }}>
               <ListItem>Unlimited employees</ListItem>
-              <ListItem>Full reward system & analytics</ListItem>
+              <ListItem>Full reward system &amp; analytics</ListItem>
               <ListItem>HR integrations (BambooHR, Workday, etc.)</ListItem>
               <ListItem>Dedicated success manager</ListItem>
-              <ListItem>24/7 phone & chat support</ListItem>
+              <ListItem>24/7 phone &amp; chat support</ListItem>
             </List>
             <Button
               component={RouterLink}
@@ -167,6 +180,7 @@ const PricingPage = () => {
         <Typography variant="h4" sx={{ mb: 2 }}>
           Frequently Asked Questions
         </Typography>
+
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6">Do you offer a trial period for Pro?</Typography>
           <Typography variant="body1">
@@ -174,6 +188,7 @@ const PricingPage = () => {
             full access to Pro features—no credit card required upfront.
           </Typography>
         </Box>
+
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6">
             Can I switch between monthly and annual billing?
@@ -183,6 +198,7 @@ const PricingPage = () => {
             your account settings.
           </Typography>
         </Box>
+
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6">What if I need a custom solution?</Typography>
           <Typography variant="body1">

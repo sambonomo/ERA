@@ -28,6 +28,10 @@ import {
   Divider,
 } from '@mui/material';
 
+/**
+ * AdminPanel - Central management panel for employees, rewards, 
+ * and quick kudos stats. Only accessible to admins.
+ */
 const AdminPanel = () => {
   const { user } = useContext(AuthContext);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -45,8 +49,8 @@ const AdminPanel = () => {
 
   // Check if user is admin
   useEffect(() => {
+    // Basic check. Adjust to your real logic (e.g., Firestore role field)
     if (user && user.email === 'admin@yourcompany.com') {
-      // Example check. You can also check `AuthContext.isAdmin()` or Firestore data
       setIsAdmin(true);
     } else {
       setIsAdmin(false);
@@ -260,9 +264,7 @@ const AdminPanel = () => {
                 <Select
                   label="Department"
                   value={emp.department}
-                  onChange={(e) =>
-                    handleUpdateDepartment(emp.id, e.target.value)
-                  }
+                  onChange={(e) => handleUpdateDepartment(emp.id, e.target.value)}
                   sx={{ width: 150 }}
                 >
                   <MenuItem value="HR">HR</MenuItem>

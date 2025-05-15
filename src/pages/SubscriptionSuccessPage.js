@@ -11,6 +11,10 @@ import {
   Button,
 } from '@mui/material';
 
+/**
+ * SubscriptionSuccessPage - Confirmation page displayed when a subscription
+ * upgrade is successfully completed. Provides a CTA back to the dashboard.
+ */
 const SubscriptionSuccessPage = () => {
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>

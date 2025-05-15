@@ -14,11 +14,16 @@ import {
   Alert,
 } from '@mui/material';
 
+/**
+ * SignupPage - Allows new users to create an account. 
+ * If the plan query param is set (e.g., "?plan=pro"), we show the selected plan.
+ */
 const SignupPage = () => {
   const { signUp } = useContext(AuthContext);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  // Use query param if present, else default to 'free'
   const defaultPlan = searchParams.get('plan') || 'free';
   const [plan] = useState(defaultPlan); // read-only, from query param
 
@@ -32,8 +37,7 @@ const SignupPage = () => {
     setError('');
     try {
       await signUp(email, password, displayName);
-      // Possibly store plan in Firestore or handle subscription flow if plan = 'pro'
-      // For now, just redirect to Dashboard
+      // Possibly store plan in Firestore if plan !== 'free'
       navigate('/dashboard');
     } catch (err) {
       console.error('Signup error:', err);
@@ -51,6 +55,7 @@ const SignupPage = () => {
           Selected Plan: <strong>{plan}</strong>
         </Typography>
 
+        {/* Display error (if any) in an Alert */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}

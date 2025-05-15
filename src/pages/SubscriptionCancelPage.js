@@ -11,6 +11,10 @@ import {
   Button,
 } from '@mui/material';
 
+/**
+ * SubscriptionCancelPage - Informs the user that their subscription upgrade/cancel 
+ * was not completed or was canceled, and provides a link to manage subscription again.
+ */
 const SubscriptionCancelPage = () => {
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
@@ -19,7 +23,7 @@ const SubscriptionCancelPage = () => {
           Subscription Canceled
         </Typography>
         <Typography variant="body1" sx={{ mb: 3 }}>
-          It looks like your upgrade was canceled or something went wrong. 
+          It looks like your upgrade was canceled or something went wrong.
           No changes have been made to your plan at this time.
         </Typography>
         <Box>

@@ -20,6 +20,10 @@ import {
   Alert,
 } from '@mui/material';
 
+/**
+ * SubscriptionPage - Allows users to view/change their subscription plan.
+ * Integrates with Stripe for the checkout flow. 
+ */
 const SubscriptionPage = () => {
   const { user } = useContext(AuthContext);
   const stripe = useStripe();
@@ -29,7 +33,7 @@ const SubscriptionPage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  // Firestore subscription status
+  // Listen for plan changes in Firestore (e.g., 'pro', 'enterprise', or 'free')
   useEffect(() => {
     if (!user) return;
 
@@ -45,12 +49,15 @@ const SubscriptionPage = () => {
     return () => unsubscribe();
   }, [user]);
 
+  // Cloud Function to create a Stripe Checkout session
   const createCheckoutSession = httpsCallable(functions, 'createCheckoutSession');
 
+  // Switch between monthly & annual billing
   const handleToggle = () => {
     setBillingCycle((prev) => (prev === 'monthly' ? 'annual' : 'monthly'));
   };
 
+  // Subscription / Upgrade logic
   const handleSubscribe = async (plan) => {
     if (!user) {
       setMessage('Please log in to subscribe.');
@@ -60,6 +67,7 @@ const SubscriptionPage = () => {
       setMessage('Stripe has not loaded yet. Please try again.');
       return;
     }
+
     setLoading(true);
     setMessage('');
 
@@ -106,7 +114,7 @@ const SubscriptionPage = () => {
         </Alert>
       )}
 
-      {/* Show billing toggle unless user is on Pro or Enterprise already */}
+      {/* Hide billing toggle if user is already Pro/Enterprise */}
       {currentPlan !== 'pro' && currentPlan !== 'enterprise' && (
         <Box
           sx={{
@@ -177,9 +185,7 @@ const SubscriptionPage = () => {
             >
               <Typography variant="h5">Pro</Typography>
               <Typography variant="h6" sx={{ mt: 1 }}>
-                {billingCycle === 'monthly'
-                  ? '$49 / month'
-                  : '$529 / year'}{' '}
+                {billingCycle === 'monthly' ? '$49 / month' : '$529 / year'}{' '}
                 {/* 10% off for annual */}
               </Typography>
               <List sx={{ textAlign: 'left', mt: 2 }}>

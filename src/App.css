@@ -28,13 +28,20 @@ html, body {
   color: var(--text-dark);
 }
 
-/* If you still use .App as a wrapper */
+/* 
+   Optional .App wrapper. 
+   Keep if your main index.js or any root-level 
+   component still uses <div className="App"> 
+*/
 .App {
   min-height: 100vh;
-  text-align: center; 
+  text-align: center;
 }
 
-/* If you keep a spinning logo somewhere, here's the animation */
+/*
+   If you keep a spinning logo, for example the 
+   React logo or any brand element:
+*/
 .App-logo {
   height: 40vmin;
   pointer-events: none;
@@ -50,7 +57,10 @@ html, body {
   to   { transform: rotate(360deg); }
 }
 
-/* Link styling (non-MUI links) */
+/* 
+   Basic link styling (for non-MUI links).
+   MUI <Link> or <Button> won't be affected here. 
+*/
 a {
   color: var(--color-secondary);
   text-decoration: none;
@@ -68,10 +78,12 @@ a:hover {
 .text-center { text-align: center; }
 .text-light { color: var(--text-light) !important; }
 .text-dark { color: var(--text-dark) !important; }
+
 .bg-primary {
   background-color: var(--color-primary) !important;
   color: var(--text-light) !important;
 }
+
 .bg-secondary {
   background-color: var(--color-secondary) !important;
   color: var(--text-light) !important;

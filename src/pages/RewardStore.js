@@ -23,6 +23,10 @@ import {
   Alert,
 } from '@mui/material';
 
+/**
+ * RewardStore - Displays a list of rewards and allows users to redeem them if they have enough points.
+ * Fetches user points from Firestore, as well as the 'rewards' collection. 
+ */
 const RewardStore = () => {
   const { user } = useContext(AuthContext);
 
@@ -99,7 +103,7 @@ const RewardStore = () => {
 
       // Optionally track redemption in 'redemptions' collection
       setUserPoints((prev) => prev - reward.cost);
-      setError(''); // clear any error
+      setError(''); // clear any existing error
       alert(
         `Successfully redeemed "${reward.name}"! Check your email for confirmation.`
       );

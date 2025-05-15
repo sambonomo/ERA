@@ -13,6 +13,10 @@ import {
   Paper,
 } from '@mui/material';
 
+/**
+ * Dashboard - Displays quick stats on Kudos, upcoming birthdays/anniversaries,
+ * and a placeholder for recent kudos. Uses MUI components for layout and styling.
+ */
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
 
