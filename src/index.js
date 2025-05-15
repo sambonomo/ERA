@@ -1,4 +1,3 @@
-// src/index.js
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
@@ -6,6 +5,7 @@ import './index.css'; // Your global CSS
 
 import { AuthProvider } from './contexts/AuthContext';
 import { RecognitionProvider } from './contexts/RecognitionContext';
+import { HelmetProvider } from 'react-helmet-async';
 
 // MUI imports
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -97,13 +97,15 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
   <React.StrictMode>
-    <ThemeProvider theme={sparkBlazeTheme}>
-      <CssBaseline />
-      <AuthProvider>
-        <RecognitionProvider>
-          <App />
-        </RecognitionProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <HelmetProvider>
+      <ThemeProvider theme={sparkBlazeTheme}>
+        <CssBaseline />
+        <AuthProvider>
+          <RecognitionProvider>
+            <App />
+          </RecognitionProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </HelmetProvider>
   </React.StrictMode>
 );

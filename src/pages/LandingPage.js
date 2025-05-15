@@ -1,6 +1,6 @@
-// src/pages/LandingPage.js
 import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 // MUI imports
 import {
   Box,
@@ -10,6 +10,12 @@ import {
   Typography,
   Button,
 } from '@mui/material';
+import CakeIcon from '@mui/icons-material/Cake';
+import EventIcon from '@mui/icons-material/Event';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
 
 /**
  * LandingPage - The main marketing/intro page for SparkBlaze.
@@ -19,6 +25,23 @@ import {
 const LandingPage = () => {
   return (
     <>
+      <Helmet>
+        <title>SparkBlaze - Revolutionize Employee Recognition</title>
+        <meta
+          name="description"
+          content="SparkBlaze is the best-in-class platform for celebrating birthdays, work anniversaries, and peer recognition."
+        />
+        <meta
+          property="og:title"
+          content="SparkBlaze - Revolutionize Employee Recognition"
+        />
+        <meta
+          property="og:description"
+          content="Unleash a culture of appreciation with AI-powered messages, automated reminders, and real-time kudos feeds."
+        />
+        <meta property="og:image" content="/assets/og-image.png" />
+      </Helmet>
+
       {/* Hero Section */}
       <Box
         sx={{
@@ -40,12 +63,14 @@ const LandingPage = () => {
                 appreciation with AI-powered messages, automated reminders, and
                 real-time kudos feeds.
               </Typography>
-              <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+              <Box sx={{ display: 'flex', gap: 2, mt: 3, flexDirection: { xs: 'column', sm: 'row' } }}>
                 <Button
                   component={RouterLink}
                   to="/signup"
                   variant="contained"
                   color="primary"
+                  size="large"
+                  aria-label="Sign up for SparkBlaze for free"
                 >
                   Get Started for Free
                 </Button>
@@ -54,6 +79,7 @@ const LandingPage = () => {
                   to="/pricing"
                   variant="outlined"
                   color="primary"
+                  aria-label="View SparkBlaze pricing plans"
                 >
                   View Pricing
                 </Button>
@@ -64,22 +90,21 @@ const LandingPage = () => {
                   to="/how-it-works"
                   variant="contained"
                   color="secondary"
+                  aria-label="Learn how SparkBlaze works"
                 >
                   See How It Works
                 </Button>
               </Box>
             </Grid>
 
-            {/* Right Column: Optional Hero Image */}
+            {/* Right Column: Hero Image */}
             <Grid item xs={12} md={6} textAlign="center">
-              {/* Uncomment or replace with your illustration */}
-              {/* 
               <img
                 src="/assets/hero-illustration.png"
-                alt="Employee recognition illustration"
+                alt="Illustration of SparkBlaze employee recognition platform"
                 style={{ width: '100%', maxWidth: '400px', height: 'auto' }}
+                loading="lazy"
               />
-              */}
             </Grid>
           </Grid>
         </Container>
@@ -99,61 +124,79 @@ const LandingPage = () => {
 
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={4}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="h6">Automated Birthday Reminders</Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  Never miss a birthday again. SparkBlaze sends Slack, Teams, or
-                  email notifications so everyone can celebrate together.
-                </Typography>
+              <Paper sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+                <CakeIcon sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
+                <Box>
+                  <Typography variant="h6">Automated Birthday Reminders</Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    Never miss a birthday again. SparkBlaze sends Slack, Teams, or
+                    email notifications so everyone can celebrate together.
+                  </Typography>
+                </Box>
               </Paper>
             </Grid>
             <Grid item xs={12} sm={6} md={4}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="h6">Service Anniversaries</Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  Recognize milestones like 1-year, 5-year, or 10-year
-                  anniversaries with heartfelt messages. SparkBlaze keeps track
-                  automatically.
-                </Typography>
+              <Paper sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+                <EventIcon sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
+                <Box>
+                  <Typography variant="h6">Service Anniversaries</Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    Recognize milestones like 1-year, 5-year, or 10-year
+                    anniversaries with heartfelt messages. SparkBlaze keeps track
+                    automatically.
+                  </Typography>
+                </Box>
               </Paper>
             </Grid>
             <Grid item xs={12} sm={6} md={4}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="h6">Peer-to-Peer Kudos</Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  Foster a culture of collaboration and appreciation. Public
-                  shoutouts, badges, and comments light up your Kudos Wall—
-                  instantly.
-                </Typography>
+              <Paper sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+                <ThumbUpIcon sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
+                <Box>
+                  <Typography variant="h6">Peer-to-Peer Kudos</Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    Foster a culture of collaboration and appreciation. Public
+                    shoutouts, badges, and comments light up your Kudos Wall—
+                    instantly.
+                  </Typography>
+                </Box>
               </Paper>
             </Grid>
             <Grid item xs={12} sm={6} md={4}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="h6">AI-Powered Suggestions</Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  Unsure what to say? Let SparkBlaze craft a thoughtful note or
-                  congratulations message—personalize and send with one click.
-                </Typography>
+              <Paper sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+                <AutoFixHighIcon sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
+                <Box>
+                  <Typography variant="h6">AI-Powered Suggestions</Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    Unsure what to say? Let SparkBlaze craft a thoughtful note or
+                    congratulations message—personalize and send with one click.
+                  </Typography>
+                </Box>
               </Paper>
             </Grid>
             <Grid item xs={12} sm={6} md={4}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="h6">Reward Marketplace</Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  Offer points for each kudos received and redeem them for gift
-                  cards, company swag, or charitable donations (Pro &amp;
-                  Enterprise tiers).
-                </Typography>
+              <Paper sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+                <ShoppingCartIcon sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
+                <Box>
+                  <Typography variant="h6">Reward Marketplace</Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    Offer points for each kudos received and redeem them for gift
+                    cards, company swag, or charitable donations (Pro &
+                    Enterprise tiers).
+                  </Typography>
+                </Box>
               </Paper>
             </Grid>
             <Grid item xs={12} sm={6} md={4}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="h6">Advanced Analytics</Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  Monitor morale and engagement with real-time dashboards.
-                  Identify top contributors, highlight achievements, and spot
-                  burnout early.
-                </Typography>
+              <Paper sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+                <AnalyticsIcon sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
+                <Box>
+                  <Typography variant="h6">Advanced Analytics</Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    Monitor morale and engagement with real-time dashboards.
+                    Identify top contributors, highlight achievements, and spot
+                    burnout early.
+                  </Typography>
+                </Box>
               </Paper>
             </Grid>
           </Grid>
@@ -168,17 +211,28 @@ const LandingPage = () => {
           </Typography>
           <Typography variant="body1" sx={{ mb: 4 }}>
             Stay in the flow of work with built-in Slack, Microsoft Teams, and
-            Google Calendar sync. Export data to your existing HR tools or
-            intranet with ease.
+            Google Calendar sync. Receive notifications directly in your preferred
+            channels and keep your team informed without switching contexts.
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <img src="/assets/slack-logo.png" alt="Slack" height={50} />
-            <img src="/assets/teams-logo.png" alt="Teams" height={50} />
+            <img
+              src="/assets/slack-logo.png"
+              alt="Slack integration logo"
+              height={50}
+              loading="lazy"
+            />
+            <img
+              src="/assets/teams-logo.png"
+              alt="Microsoft Teams integration logo"
+              height={50}
+              loading="lazy"
+            />
             <img
               src="/assets/google-calendar-logo.png"
-              alt="Google Calendar"
+              alt="Google Calendar integration logo"
               height={50}
+              loading="lazy"
             />
           </Box>
         </Container>
@@ -260,6 +314,7 @@ const LandingPage = () => {
                 variant="text"
                 color="primary"
                 sx={{ textTransform: 'none', ml: 1 }}
+                aria-label="Contact SparkBlaze for custom integrations"
               >
                 Contact us
               </Button>
@@ -291,6 +346,8 @@ const LandingPage = () => {
             to="/signup"
             variant="contained"
             color="secondary"
+            size="large"
+            aria-label="Sign up for SparkBlaze now"
           >
             Sign Up Now
           </Button>
@@ -307,7 +364,7 @@ const LandingPage = () => {
         }}
       >
         <Container>
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: 2, flexWrap: 'wrap' }}>
             <Button component={RouterLink} to="/pricing" variant="text">
               Pricing
             </Button>

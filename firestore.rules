@@ -2,69 +2,157 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // 0) Helpers
+    // Note: Accessing user data via get() can add latency.
+    // Consider if these checks can be done client-side or via claims
+    // if performance is critical, though this pattern is common.
+    function getUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function userIsAuthenticated() {
+      return request.auth != null;
+    }
+
+    function userCompanyId() {
+      return getUserDoc().data.companyId;
+    }
+
+    function userRole() {
+      return getUserDoc().data.role;
+    }
+
+    function isAdmin() {
+      return userIsAuthenticated() && userRole() == "admin";
+    }
+
+    /**
+     * isSameCompany: Checks if the provided document's companyId
+     * matches the authenticated user's companyId.
+     * Returns false if the user is not authenticated or if companyIds don't match.
+     * Note: This assumes both document and user must have a non-null companyId to be
+     * considered in the "same company". If a document or user *can* have a null companyId
+     * and still be considered "matching" (e.g., for a new user without a company yet),
+     * the logic here would need adjustment. The current implementation strictly
+     * requires both to be non-null and equal, or both to be null and the user authenticated.
+     */
+    function isSameCompany(docCompanyId) {
+      // If user is not authenticated, they cannot be in the same company context.
+      return userIsAuthenticated() && (
+        // Either both company IDs are null, OR they are non-null and equal.
+        (docCompanyId == null && userCompanyId() == null) ||
+        (docCompanyId != null && docCompanyId == userCompanyId())
+      );
+    }
+
     // 1) users collection
     match /users/{userId} {
-      // Reading own user doc only
-      allow read, update: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null && request.auth.uid == userId;
+      // A user can read or update their own user doc
+      allow read, update: if request.auth != null
+        && request.auth.uid == userId;
+
+      // Create own user doc if they don't have one
+      allow create: if request.auth != null
+        && request.auth.uid == userId;
+
+      // Deleting a user doc is restricted to admins only:
       allow delete: if isAdmin();
     }
 
-    // 2) employees collection
+    // 2) employees collection (top-level)
     match /employees/{empId} {
-      // If you want all authenticated users to read employees:
-      allow read: if request.auth != null;
+      // Reading requires the doc's companyId matches the user's
+      allow read: if isSameCompany(resource.data.companyId);
 
-      // Only admin can create or update employees
-      allow create, update, delete: if isAdmin();
+      // Creating requires admin + same company for the NEW document data
+      allow create: if isAdmin()
+        && isSameCompany(request.resource.data.companyId);
+
+      // Updating requires admin + same company for the EXISTING document data
+      // AND the NEW document data (to prevent changing companyId unless allowed elsewhere)
+      // For simplicity here, we only check the new data, assuming isAdmin allows this change.
+      allow update: if isAdmin()
+         && isSameCompany(request.resource.data.companyId);
+
+      // Deleting requires admin + same company for the EXISTING document data
+      allow delete: if isAdmin()
+        && isSameCompany(resource.data.companyId);
     }
 
     // 3) kudos collection
     match /kudos/{kudoId} {
-      // Allow read for all authenticated
-      allow read: if request.auth != null;
+      // Reading only if user is in the same company
+      allow read: if isSameCompany(resource.data.companyId);
 
-      // Let any authenticated user create a new kudo
-      allow create: if request.auth != null
-        // If you want to ensure they set senderId = their own uid:
+      // Creating requires:
+      // - user is authenticated & same company for the NEW document data
+      // - request doc's senderId == request.auth.uid
+      allow create: if isSameCompany(request.resource.data.companyId)
         && request.resource.data.senderId == request.auth.uid;
 
-      // Deleting or updating kudos can be restricted to admins or the sender
-      allow update, delete: if request.auth != null
-        && (isAdmin()
-            || resource.data.senderId == request.auth.uid);
-
-      // Validate fields if you want
-      // e.g. ensure "likes" is non-negative or "comments" is an array
+      // Update/delete if admin or the sender, and doc is same company
+      // Check company for the EXISTING document data.
+      allow update, delete: if isSameCompany(resource.data.companyId)
+        && (
+            isAdmin()
+            || resource.data.senderId == request.auth.uid
+         );
     }
 
     // 4) rewards collection
     match /rewards/{rewardId} {
-      // Let all authenticated users read rewards
-      allow read: if request.auth != null;
+      // Reading only if user is in the same company
+      allow read: if isSameCompany(resource.data.companyId);
 
-      // Only admin can create or update
-      allow create, update, delete: if isAdmin();
+      // Create/update/delete requires admin + same company.
+      // For create/update, check the NEW document data. For delete, check EXISTING.
+      allow create: if isAdmin() && isSameCompany(request.resource.data.companyId);
+      allow update: if isAdmin() && isSameCompany(request.resource.data.companyId);
+      allow delete: if isAdmin() && isSameCompany(resource.data.companyId);
     }
 
-    // 5) redemptions collection (if you store redemption logs)
+    // 5) redemptions collection
     match /redemptions/{redemptionId} {
-      // read if authenticated
-      allow read: if request.auth != null;
-      // create if user is the one redeeming
-      allow create: if request.auth != null
+      // Reading only if user is in the same company
+      allow read: if isSameCompany(resource.data.companyId);
+
+      // Creating requires:
+      // - user is authenticated & same company for the NEW document data
+      // - request doc's userId == request.auth.uid
+      allow create: if isSameCompany(request.resource.data.companyId)
         && request.resource.data.userId == request.auth.uid;
-      // update or delete typically not needed
+
+      // Update/delete requires admin + same company for the EXISTING document data
+      allow update, delete: if isAdmin()
+        && isSameCompany(resource.data.companyId);
     }
 
-    // Default deny for any other collections
+    // 6) notifications collection
+    match /notifications/{notificationId} {
+      // Reading requires:
+      // - user is authenticated
+      // - doc's userId == request.auth.uid
+      // - doc is in the same company as the user
+      allow read: if userIsAuthenticated()
+        && resource.data.userId == request.auth.uid
+        && isSameCompany(resource.data.companyId);
+
+      // Updating requires:
+      // - user is authenticated
+      // - doc's userId == request.auth.uid
+      // - doc is in the same company as the user
+      // - ONLY the 'read' field is being updated
+      allow update: if userIsAuthenticated()
+        && resource.data.userId == request.auth.uid
+        && isSameCompany(resource.data.companyId)
+        && request.resource.data.keys().hasOnly(['read']);
+
+        // No create or delete rules defined, defaulting to false by the catch-all rule.
+    }
+
+    // 7) Default deny for anything not matched
     match /{document=**} {
       allow read, write: if false;
     }
-  }
-}
-
-// Helper function to check isAdmin if we store role in /users/{uid} doc
-function isAdmin() {
-  return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
-}
+  } // This is the closing brace for 'match /databases/{database}/documents'
+} // This is the closing brace for 'service cloud.firestore'

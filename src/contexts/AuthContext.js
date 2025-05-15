@@ -6,29 +6,34 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  // If you want Google sign-in:
-  // signInWithPopup,
-  // GoogleAuthProvider,
+  signInWithPopup,
+  GoogleAuthProvider,
 } from 'firebase/auth';
 import {
   doc,
   setDoc,
   getDoc,
+  serverTimestamp,
 } from 'firebase/firestore';
 
 export const AuthContext = createContext();
 
+/**
+ * AuthProvider - Manages Firebase Auth state and user data from Firestore,
+ * including role and companyId. Supports either email/password or Google sign-in.
+ */
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);       // Firebase user object
-  const [userData, setUserData] = useState(null); // Additional user info from Firestore
+  const [user, setUser] = useState(null);         // The raw Firebase user object
+  const [userData, setUserData] = useState(null); // Additional user info from Firestore (role, companyId, etc.)
   const [loading, setLoading] = useState(true);
 
-  // 1) Auth state listener
   useEffect(() => {
+    // Listen to Firebase Auth state changes
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
-        // Optionally fetch extra profile/role from Firestore:
+
+        // Fetch additional profile data from Firestore, e.g. role, companyId
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const docSnap = await getDoc(userDocRef);
         if (docSnap.exists()) {
@@ -37,6 +42,7 @@ export const AuthProvider = ({ children }) => {
           setUserData(null);
         }
       } else {
+        // If not logged in, clear everything
         setUser(null);
         setUserData(null);
       }
@@ -46,28 +52,34 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  // 2) Sign up with Email/Password
+  // 1) Sign up with Email/Password
+  //    Optionally store extra user info in Firestore (role, companyId, etc.)
   const signUp = async (email, password, displayName) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const { uid } = userCredential.user;
 
-      // Optionally create a doc in Firestore for additional user info
-      await setDoc(doc(db, 'users', uid), {
-        email,
-        displayName: displayName || '',
-        role: 'user',  // default role
-        createdAt: new Date(),
-      });
+      // Upsert a doc in Firestore for the new user:
+      await setDoc(
+        doc(db, 'users', uid),
+        {
+          email,
+          displayName: displayName || '',
+          role: 'user',      // default role
+          companyId: null,   // can be updated if they create or join a company
+          createdAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
 
       return userCredential.user;
     } catch (error) {
       console.error('Error signing up:', error);
-      throw error; // so the caller can handle it
+      throw error;
     }
   };
 
-  // 3) Sign in with Email/Password
+  // 2) Sign in with Email/Password
   const signIn = async (email, password) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -78,7 +90,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // 4) Sign out
+  // 3) Sign out
   const logOut = async () => {
     try {
       await signOut(auth);
@@ -88,23 +100,42 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // 5) Check if user has a specific role (example usage: Admin)
+  // 4) Check if current user is an admin (based on Firestore userData.role)
   const isAdmin = () => {
     return userData?.role === 'admin';
   };
 
-  // 6) Google Sign-In (optional)
-  // const googleProvider = new GoogleAuthProvider();
-  // const signInWithGoogle = async () => {
-  //   try {
-  //     const result = await signInWithPopup(auth, googleProvider);
-  //     // Additional user info can be written to Firestore, same as above
-  //   } catch (error) {
-  //     console.error('Google sign-in error:', error);
-  //     throw error;
-  //   }
-  // };
+  // 5) Google sign-in (optional)
+  const googleProvider = new GoogleAuthProvider();
+  const signInWithGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      // "result.user" is the Firebase user object for the Google sign-in.
+      const googleUser = result.user;
 
+      // Upsert a doc in Firestore (similar to signUp logic):
+      const userDocRef = doc(db, 'users', googleUser.uid);
+      // Check if doc already exists:
+      const existingSnap = await getDoc(userDocRef);
+      if (!existingSnap.exists()) {
+        // If brand new, set default fields. Otherwise, you can merge if you like.
+        await setDoc(userDocRef, {
+          email: googleUser.email,
+          displayName: googleUser.displayName || '',
+          role: 'user', // default
+          companyId: null,
+          createdAt: serverTimestamp(),
+        });
+      }
+      // You could also merge if you want: setDoc(userDocRef, {...}, {merge: true});
+      return googleUser;
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      throw error;
+    }
+  };
+
+  // Show a loading indicator while verifying auth state
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -112,13 +143,13 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider
       value={{
-        user,         // raw Firebase user object
-        userData,     // extra data from Firestore (role, displayName, etc.)
-        signUp,
-        signIn,
+        user,          // raw Firebase user object
+        userData,      // Firestore doc with role, companyId, etc.
+        signUp,        // email/password sign up
+        signIn,        // email/password sign in
+        signInWithGoogle,  // Google sign in
         logOut,
         isAdmin,
-        // signInWithGoogle, // if you enable Google Sign-In
       }}
     >
       {children}

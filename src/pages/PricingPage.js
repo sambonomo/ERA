@@ -13,7 +13,6 @@ import {
   Button,
   List,
   ListItem,
-  Divider,
 } from '@mui/material';
 
 /**
@@ -31,7 +30,7 @@ const PricingPage = () => {
   // Example monthly vs annual costs
   const freePrice = '$0';
   const proMonthlyPrice = '$49';
-  const proAnnualPrice = '$529'; // e.g. $529/year for a ~10% discount
+  const proAnnualPrice = '$529'; // e.g. $529/year for ~10% off
   const enterprisePrice = 'Contact Us';
 
   return (

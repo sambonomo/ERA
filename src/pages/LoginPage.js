@@ -16,7 +16,9 @@ import {
 
 /**
  * LoginPage - Provides a login form for users to authenticate.
- * Uses MUI TextField and Button for a modern, responsive layout.
+ * If email verification is required, you can add a check after signIn
+ * to ensure the user has a verified email. For example, if user.emailVerified === false,
+ * show an alert or redirect them to a "Verify Email" page.
  */
 const LoginPage = () => {
   const { signIn } = useContext(AuthContext);
@@ -29,8 +31,19 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+
     try {
-      await signIn(email, password);
+      // signIn presumably wraps createUserWithEmailAndPassword or signInWithEmailAndPassword
+      // then updates auth context. If email verification is needed, we can add a check after signIn.
+      const userCred = await signIn(email, password);
+
+      // Optional: check if user is verified
+      // if (userCred && !userCred.user.emailVerified) {
+      //   setError('Your email address is not verified. Please verify before continuing.');
+      //   return;
+      // }
+
+      // If success, navigate
       navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);

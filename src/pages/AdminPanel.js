@@ -1,7 +1,8 @@
 // src/pages/AdminPanel.js
 import React, { useEffect, useState, useContext } from 'react';
+import Papa from 'papaparse'; // for CSV parsing (npm install papaparse)
 import { AuthContext } from '../contexts/AuthContext';
-import { db } from '../firebase/config';
+import { db, functions } from '../firebase/config';
 import {
   collection,
   onSnapshot,
@@ -10,7 +11,9 @@ import {
   deleteDoc,
   doc,
   serverTimestamp,
+  writeBatch,
 } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 
 // Material UI
 import {
@@ -26,15 +29,24 @@ import {
   FormControl,
   InputLabel,
   Divider,
+  Alert,
 } from '@mui/material';
 
 /**
  * AdminPanel - Central management panel for employees, rewards, 
  * and quick kudos stats. Only accessible to admins.
+ * 
+ * Features:
+ *  1) Invite Employee via inviteEmployee callable function.
+ *  2) Bulk CSV import of employees using PapaParse and Firestore writes.
+ *  3) Basic create/update/delete for employees and rewards.
+ *  4) Quick stats on total employees and kudos.
  */
 const AdminPanel = () => {
-  const { user } = useContext(AuthContext);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { user, userData, isAdmin } = useContext(AuthContext);
+
+  // For verifying admin. If using userData.role, we can just do: if (!isAdmin()) ...
+  const [adminError, setAdminError] = useState('');
 
   // Example data sets
   const [employees, setEmployees] = useState([]);
@@ -47,29 +59,38 @@ const AdminPanel = () => {
   const [rewards, setRewards] = useState([]);
   const [newReward, setNewReward] = useState({ name: '', cost: 0 });
 
-  // Check if user is admin
-  useEffect(() => {
-    // Basic check. Adjust to your real logic (e.g., Firestore role field)
-    if (user && user.email === 'admin@yourcompany.com') {
-      setIsAdmin(true);
-    } else {
-      setIsAdmin(false);
-    }
-  }, [user]);
+  // For invite single employee
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteName, setInviteName] = useState('');
+  const [inviteResult, setInviteResult] = useState('');
 
-  // Fetch Employees
+  // For CSV import
+  const [csvError, setCsvError] = useState('');
+  const [csvSuccess, setCsvSuccess] = useState('');
+
+  // 1) Check if user is admin
+  // If you're storing role in userData, you can do: isAdmin() from context
+  // or do a custom check below. We'll rely on isAdmin() here.
+  useEffect(() => {
+    if (!user) {
+      setAdminError('Please log in to view the Admin Panel.');
+      return;
+    }
+    if (!isAdmin()) {
+      setAdminError('Access Denied. You need admin privileges to view this page.');
+    }
+  }, [user, isAdmin]);
+
+  // 2) Real-time subscribe to employees
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'employees'), (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
       setEmployees(data);
     });
     return () => unsub();
   }, []);
 
-  // Fetch Kudos Stats
+  // 3) Kudos stats
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'kudos'), (snapshot) => {
       setKudosStats({ totalKudos: snapshot.size });
@@ -77,19 +98,16 @@ const AdminPanel = () => {
     return () => unsub();
   }, []);
 
-  // Fetch Rewards
+  // 4) Rewards
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'rewards'), (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
       setRewards(data);
     });
     return () => unsub();
   }, []);
 
-  // Handle new employee form
+  // Add new employee doc directly (not using invite flow)
   const handleAddEmployee = async (e) => {
     e.preventDefault();
     try {
@@ -103,7 +121,7 @@ const AdminPanel = () => {
     }
   };
 
-  // Update Employee Department
+  // Update department for an existing employee
   const handleUpdateDepartment = async (employeeId, department) => {
     try {
       const ref = doc(db, 'employees', employeeId);
@@ -113,7 +131,7 @@ const AdminPanel = () => {
     }
   };
 
-  // Delete Employee
+  // Delete an employee doc
   const handleDeleteEmployee = async (employeeId) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
       try {
@@ -124,7 +142,7 @@ const AdminPanel = () => {
     }
   };
 
-  // Handle new reward form
+  // Add a new reward
   const handleAddReward = async (e) => {
     e.preventDefault();
     try {
@@ -139,18 +157,85 @@ const AdminPanel = () => {
     }
   };
 
-  // Auth checks
+  // 5) Invite single employee with name/email via the 'inviteEmployee' callable function
+  const handleInviteEmployee = async () => {
+    setInviteResult('');
+    const inviteFn = httpsCallable(functions, 'inviteEmployee');
+    try {
+      const res = await inviteFn({ email: inviteEmail, name: inviteName });
+      // res.data.result or link
+      setInviteResult(`Success! Invitation sent to ${inviteEmail}`);
+      // Reset fields
+      setInviteEmail('');
+      setInviteName('');
+    } catch (err) {
+      console.error('inviteEmployee error', err);
+      setInviteResult(err.message || 'Error inviting employee.');
+    }
+  };
+
+  // 6) CSV Import
+  const handleCsvUpload = (file) => {
+    setCsvError('');
+    setCsvSuccess('');
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        // results.data is an array of objects
+        const rows = results.data;
+        if (!rows.length) {
+          setCsvError('CSV has no rows.');
+          return;
+        }
+        // Validate required columns
+        for (const row of rows) {
+          if (!row.name || !row.email) {
+            setCsvError('Each row must have at least "name" and "email" columns.');
+            return;
+          }
+        }
+
+        try {
+          // Create a batch to write employees
+          const batch = writeBatch(db);
+          rows.forEach((r) => {
+            const docRef = doc(collection(db, 'employees')); // auto ID
+            batch.set(docRef, {
+              name: r.name,
+              department: r.department || '',
+              email: r.email,
+              createdAt: serverTimestamp(),
+            });
+          });
+          await batch.commit();
+          setCsvSuccess(`Imported ${rows.length} employees successfully!`);
+        } catch (err) {
+          console.error('Batch CSV import error:', err);
+          setCsvError(`Import failed: ${err.message}`);
+        }
+      },
+      error: (err) => {
+        console.error('PapaParse error:', err);
+        setCsvError(err.message);
+      },
+    });
+  };
+
+  // 7) If not admin or not logged in, show a message
   if (!user) {
     return (
       <Box sx={{ p: 4 }}>
-        <Typography>Please log in to view the Admin Panel.</Typography>
+        <Typography>{adminError || 'Please log in to view the Admin Panel.'}</Typography>
       </Box>
     );
   }
-  if (!isAdmin) {
+  if (!isAdmin()) {
     return (
       <Box sx={{ p: 4 }}>
-        <Typography>Access Denied. You need admin privileges to view this page.</Typography>
+        <Typography>
+          {adminError || 'Access Denied. You need admin privileges to view this page.'}
+        </Typography>
       </Box>
     );
   }
@@ -186,6 +271,66 @@ const AdminPanel = () => {
 
       <Divider sx={{ my: 3 }} />
 
+      {/* Invite Single Employee */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" sx={{ mb: 2 }}>
+          Invite Employee
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 1 }}>
+          <TextField
+            label="Employee Name"
+            value={inviteName}
+            onChange={(e) => setInviteName(e.target.value)}
+          />
+          <TextField
+            label="Employee Email"
+            value={inviteEmail}
+            onChange={(e) => setInviteEmail(e.target.value)}
+          />
+          <Button variant="contained" onClick={handleInviteEmployee} sx={{ alignSelf: 'center' }}>
+            Invite
+          </Button>
+        </Box>
+        {inviteResult && <Alert severity="info">{inviteResult}</Alert>}
+      </Box>
+
+      <Divider sx={{ my: 3 }} />
+
+      {/* Bulk CSV Import */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" sx={{ mb: 2 }}>
+          Import Employees via CSV
+        </Typography>
+        <Button
+          variant="outlined"
+          component="label"
+        >
+          Select CSV File
+          <input
+            type="file"
+            accept=".csv"
+            hidden
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                handleCsvUpload(e.target.files[0]);
+              }
+            }}
+          />
+        </Button>
+        {csvError && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {csvError}
+          </Alert>
+        )}
+        {csvSuccess && (
+          <Alert severity="success" sx={{ mt: 2 }}>
+            {csvSuccess}
+          </Alert>
+        )}
+      </Box>
+
+      <Divider sx={{ my: 3 }} />
+
       {/* Employee Management */}
       <Typography variant="h5" sx={{ mb: 2 }}>
         Manage Employees
@@ -194,7 +339,7 @@ const AdminPanel = () => {
       {/* Add New Employee Form */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Typography variant="h6" sx={{ mb: 2 }}>
-          Add New Employee
+          Add Employee (Direct, No Invite)
         </Typography>
         <Box
           component="form"
@@ -348,7 +493,7 @@ const AdminPanel = () => {
             <Typography>
               <strong>{rwd.name}</strong> — {rwd.cost} pts
             </Typography>
-            {/* If you want to edit/delete, do so similarly */}
+            {/* If you want to allow editing or deleting a reward, you'd do so similarly here */}
           </Box>
         ))}
       </Paper>
