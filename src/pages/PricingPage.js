@@ -1,7 +1,7 @@
 // src/pages/PricingPage.js
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import './PricingPage.css'; // optional external CSS
+
 
 const PricingPage = () => {
   // Optional: Toggle between monthly & annual billing

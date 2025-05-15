@@ -1,9 +1,9 @@
 // src/pages/SubscriptionPage.js
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
-import { functions, db } from '../firebase/config'; // If using Firebase Cloud Functions
 import { httpsCallable } from 'firebase/functions';
 import { doc, onSnapshot } from 'firebase/firestore';
+import { db, functions } from '../firebase/config'; // <-- Import here
 import { useStripe } from '@stripe/react-stripe-js';
 
 const SubscriptionPage = () => {
@@ -15,30 +15,31 @@ const SubscriptionPage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  // Optional: Real-time subscription status from Firestore
+  // Real-time subscription status from Firestore
   useEffect(() => {
     if (!user) return;
+
+    // Since we imported 'db', it is now defined
     const userRef = doc(db, 'users', user.uid);
     const unsubscribe = onSnapshot(userRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
-        // Example: store plan info in user doc: { plan: 'pro', ... }
         if (data.plan) {
           setCurrentPlan(data.plan);
         }
       }
     });
+
     return () => unsubscribe();
   }, [user]);
 
-  // Toggle between monthly/annual
+  // Toggle billing cycle
   const handleToggle = () => {
     setBillingCycle((prev) => (prev === 'monthly' ? 'annual' : 'monthly'));
   };
 
-  // Create a Stripe Checkout session via Cloud Function
-  const createCheckoutSession = httpsCallable(functions, 'createCheckoutSession'); 
-  // Example Cloud Function name: `createCheckoutSession`.
+  // Create a Stripe Checkout session via our Cloud Function
+  const createCheckoutSession = httpsCallable(functions, 'createCheckoutSession');
 
   const handleSubscribe = async (plan) => {
     if (!user) {
@@ -54,11 +55,7 @@ const SubscriptionPage = () => {
     setMessage('');
 
     try {
-      // e.g., pass plan ('pro' or 'enterprise') and billingCycle
-      const { data } = await createCheckoutSession({ 
-        plan,
-        billingCycle
-      });
+      const { data } = await createCheckoutSession({ plan, billingCycle });
       // data.sessionId is your Stripe checkout session
       const { sessionId } = data;
 
@@ -112,7 +109,7 @@ const SubscriptionPage = () => {
       )}
 
       <div className="subscription-plans">
-        {/* FREE plan - maybe just show "current" if user is on free */}
+        {/* FREE plan */}
         <div className="plan-card">
           <h2>Free</h2>
           <p>$0 / month</p>
@@ -123,10 +120,7 @@ const SubscriptionPage = () => {
           {currentPlan === 'free' ? (
             <button disabled>Current Plan</button>
           ) : (
-            <button 
-              onClick={() => handleSubscribe('free')}
-              disabled={loading}
-            >
+            <button onClick={() => handleSubscribe('free')} disabled={loading}>
               Downgrade to Free
             </button>
           )}
@@ -139,8 +133,7 @@ const SubscriptionPage = () => {
             <p>
               {billingCycle === 'monthly'
                 ? '$49 / month'
-                : '$529 / year' /* Example: $529 for annual (10% off) */
-              }
+                : '$529 / year' /* 10% off for annual */}
             </p>
             <ul>
               <li>Up to 100 employees</li>
@@ -150,10 +143,7 @@ const SubscriptionPage = () => {
             {currentPlan === 'pro' ? (
               <button disabled>Current Plan</button>
             ) : (
-              <button 
-                onClick={() => handleSubscribe('pro')}
-                disabled={loading}
-              >
+              <button onClick={() => handleSubscribe('pro')} disabled={loading}>
                 {currentPlan === 'free' ? 'Upgrade to Pro' : 'Switch to Pro'}
               </button>
             )}
@@ -172,12 +162,9 @@ const SubscriptionPage = () => {
           {currentPlan === 'enterprise' ? (
             <button disabled>Current Plan</button>
           ) : (
-            <button 
-              onClick={() => handleSubscribe('enterprise')}
-              disabled={loading}
-            >
-              {currentPlan === 'free' || currentPlan === 'pro' 
-                ? 'Upgrade to Enterprise' 
+            <button onClick={() => handleSubscribe('enterprise')} disabled={loading}>
+              {currentPlan === 'free' || currentPlan === 'pro'
+                ? 'Upgrade to Enterprise'
                 : 'Contact Sales'
               }
             </button>
@@ -185,7 +172,7 @@ const SubscriptionPage = () => {
         </div>
       </div>
 
-      {/* Example: If user is on Pro or Enterprise, show a cancel button */}
+      {/* Cancel or Downgrade if user is on Pro/Enterprise */}
       {(currentPlan === 'pro' || currentPlan === 'enterprise') && (
         <div className="cancel-subscription">
           <h3>Need to cancel?</h3>

@@ -2,101 +2,97 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { db } from '../firebase/config';
-import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
-
-// Example components you might already have:
-// import BirthdayCard from '../components/BirthdayCard';
-// import KudosFeed from '../components/KudosFeed';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 
 const Dashboard = () => {
-  const { user } = useContext(AuthContext); 
+  const { user } = useContext(AuthContext);
+
   const [upcomingBirthdays, setUpcomingBirthdays] = useState([]);
   const [kudosCount, setKudosCount] = useState(0);
   const [anniversaries, setAnniversaries] = useState([]);
 
-  // Optional: Fetch upcoming birthdays
+  // Example: fetch upcoming birthdays (limiting results)
   useEffect(() => {
-    // Example approach: if you store birthdays as full timestamps in an "employees" collection,
-    // you can filter employees whose birthday is in the next X days. 
-    // For demonstration, we’ll just limit the results.
-    const today = new Date();
     const employeesRef = collection(db, 'employees');
-    const q = query(
-      employeesRef,
-      orderBy('birthday', 'asc'),
-      limit(5)
-    );
+    const q = query(employeesRef, orderBy('birthday', 'asc'), limit(5));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const bdayData = snapshot.docs.map((doc) => ({
+      const data = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setUpcomingBirthdays(bdayData);
+      setUpcomingBirthdays(data);
     });
     return () => unsubscribe();
   }, []);
 
-  // Optional: Fetch total kudos or recent kudos
+  // Example: fetch kudos count
   useEffect(() => {
     const kudosRef = collection(db, 'kudos');
     const q = query(kudosRef);
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      // If you just want the total count:
       setKudosCount(snapshot.size);
     });
     return () => unsubscribe();
   }, []);
 
-  // Optional: Fetch upcoming anniversaries
+  // Example: fetch upcoming anniversaries
   useEffect(() => {
-    // Similar approach for employees with hireDate approaching
     const employeesRef = collection(db, 'employees');
     const q = query(employeesRef, orderBy('hireDate', 'asc'), limit(5));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const annData = snapshot.docs.map((doc) => ({
+      const data = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setAnniversaries(annData);
+      setAnniversaries(data);
     });
     return () => unsubscribe();
   }, []);
 
   return (
-    <div className="dashboard-container">
-      {/* Dashboard Header / Welcome Section */}
-      <header className="dashboard-header">
-        <h1>Welcome, {user ? user.displayName || user.email : 'Guest'}!</h1>
+    <div className="dashboard container">
+      {/* Header Section */}
+      <section className="section" style={{ textAlign: 'center' }}>
+        <h1>
+          Welcome, {user ? user.displayName || user.email : 'Guest'}!
+        </h1>
         <p>Here’s what’s happening today at SparkBlaze.</p>
-      </header>
+      </section>
 
-      {/* Statistics / Quick Info Cards */}
-      <section className="dashboard-stats">
-        <div className="stats-card">
-          <h3>Total Kudos</h3>
-          <p>{kudosCount}</p>
-        </div>
-        <div className="stats-card">
-          <h3>Birthdays Soon</h3>
-          <p>{upcomingBirthdays.length}</p>
-        </div>
-        <div className="stats-card">
-          <h3>Anniversaries Soon</h3>
-          <p>{anniversaries.length}</p>
+      {/* Stats Section */}
+      <section className="section">
+        <h2>Quick Stats</h2>
+        <div className="card-grid">
+          <div className="card stats-card">
+            <h3>Total Kudos</h3>
+            <p style={{ fontSize: '2rem' }}>{kudosCount}</p>
+          </div>
+          <div className="card stats-card">
+            <h3>Birthdays Soon</h3>
+            <p style={{ fontSize: '2rem' }}>{upcomingBirthdays.length}</p>
+          </div>
+          <div className="card stats-card">
+            <h3>Anniversaries Soon</h3>
+            <p style={{ fontSize: '2rem' }}>{anniversaries.length}</p>
+          </div>
         </div>
       </section>
 
       {/* Upcoming Birthdays */}
-      <section className="dashboard-section birthdays-section">
+      <section className="section">
         <h2>Upcoming Birthdays</h2>
-        <div className="birthdays-list">
+        <div className="card-grid">
           {upcomingBirthdays.map((emp) => (
-            // If you have a BirthdayCard component, use it:
-            // <BirthdayCard key={emp.id} employee={emp} />
-            // Or just inline:
-            <div key={emp.id} className="birthday-item">
+            // If you have <BirthdayCard /> replace the card below with it
+            <div key={emp.id} className="card birthday-card">
               <h4>{emp.name}</h4>
-              <p>{new Date(emp.birthday.seconds * 1000).toLocaleDateString()}</p>
+              {emp.birthday?.seconds ? (
+                <p>
+                  {new Date(emp.birthday.seconds * 1000).toLocaleDateString()}
+                </p>
+              ) : (
+                <p>No birthday info</p>
+              )}
             </div>
           ))}
           {upcomingBirthdays.length === 0 && (
@@ -106,13 +102,20 @@ const Dashboard = () => {
       </section>
 
       {/* Work Anniversaries */}
-      <section className="dashboard-section anniversaries-section">
+      <section className="section">
         <h2>Upcoming Anniversaries</h2>
-        <div className="anniversaries-list">
+        <div className="card-grid">
           {anniversaries.map((emp) => (
-            <div key={emp.id} className="anniversary-item">
+            <div key={emp.id} className="card anniversary-card">
               <h4>{emp.name}</h4>
-              <p>Hire Date: {new Date(emp.hireDate.seconds * 1000).toLocaleDateString()}</p>
+              {emp.hireDate?.seconds ? (
+                <p>
+                  Hire Date:{' '}
+                  {new Date(emp.hireDate.seconds * 1000).toLocaleDateString()}
+                </p>
+              ) : (
+                <p>No hire date info</p>
+              )}
             </div>
           ))}
           {anniversaries.length === 0 && (
@@ -122,14 +125,12 @@ const Dashboard = () => {
       </section>
 
       {/* Kudos Feed */}
-      <section className="dashboard-section kudos-section">
+      <section className="section">
         <h2>Recent Kudos</h2>
-        {/* If you already have a KudosFeed component, you can import and use it here: */}
-        {/* <KudosFeed /> */}
-        <p>
-          {/* If you prefer a simple inline list: */}
-          Here you might embed a KudosFeed component or a quick list of recent kudos.
-        </p>
+        {/* If you have a <KudosFeed /> component, you can just <KudosFeed /> here */}
+        <div className="card">
+          <p>Embed or display recent kudos here.</p>
+        </div>
       </section>
     </div>
   );

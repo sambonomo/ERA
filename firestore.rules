@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1) users collection
+    match /users/{userId} {
+      // Reading own user doc only
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow delete: if isAdmin();
+    }
+
+    // 2) employees collection
+    match /employees/{empId} {
+      // If you want all authenticated users to read employees:
+      allow read: if request.auth != null;
+
+      // Only admin can create or update employees
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 3) kudos collection
+    match /kudos/{kudoId} {
+      // Allow read for all authenticated
+      allow read: if request.auth != null;
+
+      // Let any authenticated user create a new kudo
+      allow create: if request.auth != null
+        // If you want to ensure they set senderId = their own uid:
+        && request.resource.data.senderId == request.auth.uid;
+
+      // Deleting or updating kudos can be restricted to admins or the sender
+      allow update, delete: if request.auth != null
+        && (isAdmin()
+            || resource.data.senderId == request.auth.uid);
+
+      // Validate fields if you want
+      // e.g. ensure "likes" is non-negative or "comments" is an array
+    }
+
+    // 4) rewards collection
+    match /rewards/{rewardId} {
+      // Let all authenticated users read rewards
+      allow read: if request.auth != null;
+
+      // Only admin can create or update
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 5) redemptions collection (if you store redemption logs)
+    match /redemptions/{redemptionId} {
+      // read if authenticated
+      allow read: if request.auth != null;
+      // create if user is the one redeeming
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+      // update or delete typically not needed
+    }
+
+    // Default deny for any other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// Helper function to check isAdmin if we store role in /users/{uid} doc
+function isAdmin() {
+  return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+}

@@ -1,20 +1,25 @@
-// src/firebase/functions/sendAnniversaryTeams.js
+// functions/sendAnniversaryTeams.js
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const fetch = require('node-fetch'); // or axios
+const fetch = require('node-fetch');
 
-// Store your MS Teams webhook in Firebase config for security
-// e.g.  firebase functions:config:set teams.webhook_url="https://outlook.office.com/webhook/..." 
+// Read Teams Webhook from Firebase Functions config
 const TEAMS_WEBHOOK_URL = functions.config().teams
   ? functions.config().teams.webhook_url
   : null;
 
+/**
+ * Runs every Monday at 9 AM Pacific (or specified timeZone).
+ * Finds employees with hireDate in the next 7 days, calculates
+ * years of service, then sends a Microsoft Teams message card
+ * to congratulate them on their upcoming anniversary.
+ */
 module.exports = functions.pubsub
-  .schedule('0 9 * * MON') // Runs every Monday at 9 AM
+  .schedule('0 9 * * MON') // every Monday at 9 AM
   .timeZone('America/Los_Angeles')
   .onRun(async (context) => {
     if (!TEAMS_WEBHOOK_URL) {
-      console.log('No Teams webhook URL found in functions config. Skipping.');
+      console.log('No TEAMS_WEBHOOK_URL found in config. Skipping Teams notification.');
       return null;
     }
 
@@ -25,11 +30,11 @@ module.exports = functions.pubsub
     const nextWeek = new Date(today);
     nextWeek.setDate(nextWeek.getDate() + 7);
 
-    // Convert to Firestore Timestamps if your field is a Firestore 'Timestamp'
+    // Convert JS dates to Firestore Timestamps
     const todayTimestamp = admin.firestore.Timestamp.fromDate(today);
     const nextWeekTimestamp = admin.firestore.Timestamp.fromDate(nextWeek);
 
-    // Query employees with hireDate between today and the next 7 days
+    // Query employees whose hireDate is between today and next 7 days
     const snapshot = await db
       .collection('employees')
       .where('hireDate', '>=', todayTimestamp)
@@ -37,67 +42,70 @@ module.exports = functions.pubsub
       .get();
 
     if (snapshot.empty) {
-      console.log('No upcoming anniversaries this week!');
+      console.log('No upcoming work anniversaries this week!');
       return null;
     }
 
-    const notificationPromises = [];
+    // Helper: Calculate full years of service
+    function calculateYearsOfService(hireDate, currentDate) {
+      let years = currentDate.getFullYear() - hireDate.getFullYear();
+      // Convert month/day to a numeric "MMDD" for easier comparison
+      const currentMonthDay = (currentDate.getMonth() + 1) * 100 + currentDate.getDate();
+      const hireMonthDay = (hireDate.getMonth() + 1) * 100 + hireDate.getDate();
 
-    // Helper function to calculate how many full years between two dates
-    function calculateYearsOfService(hire, current) {
-      let years = current.getFullYear() - hire.getFullYear();
-      const currentMonthDay = (current.getMonth() + 1) * 100 + current.getDate();
-      const hireMonthDay = (hire.getMonth() + 1) * 100 + hire.getDate();
+      // If we haven't reached the hire month/day yet this year, subtract one
       if (currentMonthDay < hireMonthDay) {
         years--;
       }
       return years;
     }
 
+    const notificationPromises = [];
+
     snapshot.forEach((doc) => {
       const emp = doc.data();
       const employeeName = emp.name || 'A Team Member';
-      const hireDate = emp.hireDate.toDate();
-      const years = calculateYearsOfService(hireDate, today);
+      const hireDateObj = emp.hireDate.toDate(); // from Firestore Timestamp
+      const years = calculateYearsOfService(hireDateObj, today);
 
-      console.log(`Preparing anniversary notification for ${employeeName} (Hire date: ${hireDate.toDateString()})`);
+      console.log(`Preparing anniversary notification for ${employeeName} - hire date: ${hireDateObj.toDateString()} (Years: ${years})`);
 
-      // Example Adaptive Card / MessageCard for Teams
-      const teamsPayload = {
+      // Build the Teams MessageCard payload
+      const cardPayload = {
         '@type': 'MessageCard',
         '@context': 'http://schema.org/extensions',
-        themeColor: '0076D7', 
+        themeColor: '0076D7',
         summary: 'Work Anniversary Notification',
         sections: [
           {
-            activityTitle: `:tada: Celebrating ${employeeName}'s Work Anniversary!`,
-            activitySubtitle: `Hire Date: ${hireDate.toLocaleDateString()}`,
-            text: `They are celebrating **${years} year(s)** with us. Let's congratulate them!`,
+            activityTitle: `🎉 Celebrating ${employeeName}'s Work Anniversary!`,
+            activitySubtitle: `Hire Date: ${hireDateObj.toLocaleDateString()}`,
+            text: `They are celebrating **${years}** year(s) with us. Let's congratulate them!`,
           },
         ],
       };
 
       // Post to Teams webhook
-      const requestPromise = fetch(TEAMS_WEBHOOK_URL, {
+      const sendRequest = fetch(TEAMS_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(teamsPayload),
+        body: JSON.stringify(cardPayload),
       })
         .then((res) => {
           if (!res.ok) {
-            throw new Error(`Teams webhook responded with status ${res.status}`);
+            throw new Error(`Teams webhook responded with ${res.status}`);
           }
           console.log(`Anniversary message sent for ${employeeName}`);
         })
         .catch((err) => {
-          console.error(`Error sending Teams message for ${employeeName}:`, err);
+          console.error(`Error sending Teams message for ${employeeName}`, err);
         });
 
-      notificationPromises.push(requestPromise);
+      notificationPromises.push(sendRequest);
     });
 
-    // Wait for all messages to send
+    // Wait for all fetch calls to complete
     await Promise.all(notificationPromises);
-    console.log('All anniversary notifications completed.');
+    console.log('All anniversary notifications sent to Teams.');
     return null;
   });
