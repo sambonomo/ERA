@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "SparkBlaze",
+  "name": "SparkBlaze - The Ultimate Employee Recognition App",
   "icons": [
     {
       "src": "favicon.ico",
@@ -19,7 +19,10 @@
     }
   ],
   "start_url": ".",
+  "scope": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "orientation": "portrait",
+  "theme_color": "#ff6b6b",
+  "background_color": "#ffffff",
+  "description": "SparkBlaze brings birthdays, anniversaries, and kudos together in one seamless employee recognition platform."
 }

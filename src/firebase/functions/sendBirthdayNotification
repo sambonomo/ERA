@@ -1,28 +1,72 @@
+// functions/sendBirthdayNotification.js
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const axios = require('axios'); // If you want to post to Slack or another webhook
+
+// Example: Slack webhook URL stored in Firebase Functions config
+// Set it locally via: firebase functions:config:set slack.webhook_url="https://hooks.slack.com/services/xxxx/xxxx"
+// Then you can access it via functions.config().slack.webhook_url
+const SLACK_WEBHOOK_URL = functions.config().slack
+  ? functions.config().slack.webhook_url
+  : null;
 
 module.exports = functions.pubsub
   .schedule('0 8 * * *') // Runs every day at 8 AM
   .timeZone('America/Los_Angeles')
   .onRun(async (context) => {
     const db = admin.firestore();
+
+    // Build "today" strings for easy matching
     const today = new Date();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
 
-    // Check 'employees' collection for matching birthdays
+    // Query Firestore for employees matching today's month/day
     const snapshot = await db
       .collection('employees')
       .where('birthdayMonth', '==', mm)
       .where('birthdayDay', '==', dd)
       .get();
 
-    if (!snapshot.empty) {
-      snapshot.forEach(async (doc) => {
-        const employeeData = doc.data();
-        // Use your email/SMS/Slack API logic
-        console.log(`Sending birthday notification to ${employeeData.name}`);
-      });
+    if (snapshot.empty) {
+      console.log('No birthdays today!');
+      return null;
     }
+
+    // Collect each async operation in an array
+    const notificationPromises = [];
+
+    snapshot.forEach((doc) => {
+      const employeeData = doc.data();
+      const employeeName = employeeData.name || 'A Teammate';
+      console.log(`Preparing birthday notification for ${employeeName}`);
+
+      // Example Slack message
+      if (SLACK_WEBHOOK_URL) {
+        const slackPayload = {
+          text: `:birthday: Happy Birthday, ${employeeName}! :tada:\nWe hope you have an amazing day!`,
+        };
+        // Push the promise into our array
+        notificationPromises.push(
+          axios.post(SLACK_WEBHOOK_URL, slackPayload)
+            .then(() => {
+              console.log(`Slack message sent for ${employeeName}`);
+            })
+            .catch((err) => {
+              console.error(`Failed to send Slack message for ${employeeName}`, err);
+            })
+        );
+      }
+
+      // If you also want to send email, you can add that logic here
+      // For instance:
+      // const sendEmailPromise = sendEmail(employeeData.email, 'Happy Birthday!', 'Some message body...')
+      // notificationPromises.push(sendEmailPromise);
+    });
+
+    // Wait for all notifications to complete
+    await Promise.all(notificationPromises);
+    console.log('Birthday notifications completed.');
+
     return null;
   });
