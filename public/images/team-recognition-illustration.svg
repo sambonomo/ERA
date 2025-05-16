@@ -1,0 +1,47 @@
+<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="600" height="400" fill="#F0F9FF" rx="20" ry="20"/>
+  
+  <!-- Decorative elements -->
+  <circle cx="150" cy="100" r="50" fill="#4FD1C5" opacity="0.3"/>
+  <circle cx="450" cy="300" r="70" fill="#B794F4" opacity="0.3"/>
+  <circle cx="350" cy="150" r="30" fill="#F6AD55" opacity="0.3"/>
+  
+  <!-- People group -->
+  <g transform="translate(150, 150)">
+    <!-- Person 1 -->
+    <circle cx="0" cy="0" r="30" fill="#00A3A3"/>
+    <circle cx="0" cy="-15" r="15" fill="#00A3A3"/>
+    
+    <!-- Person 2 -->
+    <circle cx="80" cy="10" r="30" fill="#805AD5"/>
+    <circle cx="80" cy="-5" r="15" fill="#805AD5"/>
+    
+    <!-- Person 3 -->
+    <circle cx="40" cy="60" r="30" fill="#F6AD55"/>
+    <circle cx="40" cy="45" r="15" fill="#F6AD55"/>
+    
+    <!-- Person 4 -->
+    <circle cx="150" cy="30" r="30" fill="#4FD1C5"/>
+    <circle cx="150" cy="15" r="15" fill="#4FD1C5"/>
+    
+    <!-- Person 5 -->
+    <circle cx="200" cy="-10" r="30" fill="#FC8181"/>
+    <circle cx="200" cy="-25" r="15" fill="#FC8181"/>
+    
+    <!-- Recognition symbols -->
+    <polygon points="40,0 60,10 40,20 20,10" fill="#FEEBC8" stroke="#F6AD55" stroke-width="2"/>
+    <polygon points="120,30 140,40 120,50 100,40" fill="#FEEBC8" stroke="#F6AD55" stroke-width="2"/>
+    <polygon points="180,50 200,60 180,70 160,60" fill="#FEEBC8" stroke="#F6AD55" stroke-width="2"/>
+    
+    <!-- Connection lines -->
+    <line x1="30" y1="0" x2="50" y2="40" stroke="#2D3748" stroke-width="2" stroke-dasharray="5,5"/>
+    <line x1="110" y1="10" x2="70" y2="40" stroke="#2D3748" stroke-width="2" stroke-dasharray="5,5"/>
+    <line x1="180" y1="30" x2="140" y2="40" stroke="#2D3748" stroke-width="2" stroke-dasharray="5,5"/>
+    <line x1="180" y1="-10" x2="140" y2="10" stroke="#2D3748" stroke-width="2" stroke-dasharray="5,5"/>
+  </g>
+  
+  <!-- Text labels -->
+  <text x="300" y="50" font-family="Arial" font-size="18" fill="#2D3748" text-anchor="middle">Team Recognition</text>
+  <text x="300" y="380" font-family="Arial" font-size="12" fill="#718096" text-anchor="middle">Building stronger teams through appreciation</text>
+</svg> 

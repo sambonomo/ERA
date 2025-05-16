@@ -12,13 +12,20 @@ import {
 
 // If you want to parse JS dates, you could also install date-fns or moment.
 
+const months = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+const days = Array.from({ length: 31 }, (_, i) => i + 1);
+
 const EmployeeForm = ({ employeeId, onSuccess }) => {
   // Form fields
   const [name, setName] = useState('');
   const [department, setDepartment] = useState('');
   const [location, setLocation] = useState('');
   const [email, setEmail] = useState('');
-  const [birthday, setBirthday] = useState('');  // storing as a string (YYYY-MM-DD) for simplicity
+  const [birthdayMonth, setBirthdayMonth] = useState('');
+  const [birthdayDay, setBirthdayDay] = useState('');
   const [hireDate, setHireDate] = useState('');  // same approach
 
   // Loading / error / success states
@@ -40,11 +47,8 @@ const EmployeeForm = ({ employeeId, onSuccess }) => {
           setDepartment(data.department || '');
           setLocation(data.location || '');
           setEmail(data.email || '');
-          // If data.birthday is a Timestamp, convert to YYYY-MM-DD
-          if (data.birthday && data.birthday.toDate) {
-            const bDate = data.birthday.toDate();
-            setBirthday(bDate.toISOString().split('T')[0]); 
-          }
+          if (data.birthdayMonth) setBirthdayMonth(data.birthdayMonth);
+          if (data.birthdayDay) setBirthdayDay(data.birthdayDay);
           if (data.hireDate && data.hireDate.toDate) {
             const hDate = data.hireDate.toDate();
             setHireDate(hDate.toISOString().split('T')[0]); 
@@ -69,12 +73,7 @@ const EmployeeForm = ({ employeeId, onSuccess }) => {
     setSuccessMsg('');
 
     try {
-      // Convert YYYY-MM-DD to Firestore Timestamps if you want, or store as a plain date string
-      let birthdayObj = null;
       let hireDateObj = null;
-      if (birthday) {
-        birthdayObj = new Date(birthday + 'T00:00:00');
-      }
       if (hireDate) {
         hireDateObj = new Date(hireDate + 'T00:00:00');
       }
@@ -86,7 +85,8 @@ const EmployeeForm = ({ employeeId, onSuccess }) => {
         location,
         email,
         updatedAt: serverTimestamp(),
-        ...(birthday && { birthday: birthdayObj }), 
+        ...(birthdayMonth && { birthdayMonth }),
+        ...(birthdayDay && { birthdayDay }),
         ...(hireDate && { hireDate: hireDateObj }),
       };
 
@@ -113,7 +113,8 @@ const EmployeeForm = ({ employeeId, onSuccess }) => {
       setDepartment('');
       setLocation('');
       setEmail('');
-      setBirthday('');
+      setBirthdayMonth('');
+      setBirthdayDay('');
       setHireDate('');
     } catch (err) {
       console.error('Error saving employee:', err);
@@ -173,25 +174,41 @@ const EmployeeForm = ({ employeeId, onSuccess }) => {
           />
         </div>
 
-        <div>
-          <label>Birthday:</label>
-          <input 
-            type="date"
-            value={birthday}
-            onChange={(e) => setBirthday(e.target.value)}
-          />
+        {/* Birthday Section */}
+        <div style={{ marginTop: '1.5rem', marginBottom: '0.5rem' }}>
+          <strong>Birthday (Month and Day):</strong>
+        </div>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <label>Month:</label>
+          <select value={birthdayMonth} onChange={e => setBirthdayMonth(e.target.value)} required>
+            <option value="">Month</option>
+            {months.map((m, idx) => (
+              <option key={m} value={idx + 1}>{m}</option>
+            ))}
+          </select>
+          <label>Day:</label>
+          <select value={birthdayDay} onChange={e => setBirthdayDay(e.target.value)} required>
+            <option value="">Day</option>
+            {days.map(d => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
         </div>
 
+        {/* Service Anniversary Section */}
+        <div style={{ marginTop: '1.5rem', marginBottom: '0.5rem' }}>
+          <strong>Service Anniversary (Date):</strong>
+        </div>
         <div>
-          <label>Hire Date:</label>
           <input 
             type="date"
             value={hireDate}
             onChange={(e) => setHireDate(e.target.value)}
+            required
           />
         </div>
 
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading} style={{ marginTop: '2rem' }}>
           {loading ? 'Saving...' : employeeId ? 'Update' : 'Create'}
         </button>
       </form>

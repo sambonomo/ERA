@@ -54,6 +54,9 @@ const AdminPanel = () => {
     name: '',
     department: '',
     email: '',
+    birthdayMonth: '',
+    birthdayDay: '',
+    hireDate: '',
   });
   const [kudosStats, setKudosStats] = useState({ totalKudos: 0 });
   const [rewards, setRewards] = useState([]);
@@ -67,6 +70,12 @@ const AdminPanel = () => {
   // For CSV import
   const [csvError, setCsvError] = useState('');
   const [csvSuccess, setCsvSuccess] = useState('');
+
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
   // 1) Check if user is admin
   // If you're storing role in userData, you can do: isAdmin() from context
@@ -111,11 +120,21 @@ const AdminPanel = () => {
   const handleAddEmployee = async (e) => {
     e.preventDefault();
     try {
+      const { name, department, email, birthdayMonth, birthdayDay, hireDate } = newEmployee;
+      let hireDateObj = null;
+      if (hireDate) {
+        hireDateObj = new Date(hireDate + 'T00:00:00');
+      }
       await addDoc(collection(db, 'employees'), {
-        ...newEmployee,
+        name,
+        department,
+        email,
+        ...(birthdayMonth && { birthdayMonth }),
+        ...(birthdayDay && { birthdayDay }),
+        ...(hireDate && { hireDate: hireDateObj }),
         createdAt: serverTimestamp(),
       });
-      setNewEmployee({ name: '', department: '', email: '' });
+      setNewEmployee({ name: '', department: '', email: '', birthdayMonth: '', birthdayDay: '', hireDate: '' });
     } catch (err) {
       console.error('Error adding new employee:', err);
     }
@@ -344,7 +363,7 @@ const AdminPanel = () => {
         <Box
           component="form"
           onSubmit={handleAddEmployee}
-          sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}
+          sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}
         >
           <TextField
             label="Name"
@@ -376,6 +395,44 @@ const AdminPanel = () => {
               setNewEmployee({ ...newEmployee, email: e.target.value })
             }
             sx={{ minWidth: 220 }}
+          />
+          <Box sx={{ minWidth: 120 }}>
+            <label style={{ fontSize: '0.9rem' }}>Birthday Month</label>
+            <select
+              value={newEmployee.birthdayMonth}
+              onChange={e => setNewEmployee({ ...newEmployee, birthdayMonth: e.target.value })}
+              required
+              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+            >
+              <option value="">Month</option>
+              {months.map((m, idx) => (
+                <option key={m} value={idx + 1}>{m}</option>
+              ))}
+            </select>
+          </Box>
+          <Box sx={{ minWidth: 80 }}>
+            <label style={{ fontSize: '0.9rem' }}>Birthday Day</label>
+            <select
+              value={newEmployee.birthdayDay}
+              onChange={e => setNewEmployee({ ...newEmployee, birthdayDay: e.target.value })}
+              required
+              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+            >
+              <option value="">Day</option>
+              {days.map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </Box>
+          <TextField
+            label="Service Anniversary"
+            variant="outlined"
+            type="date"
+            required
+            value={newEmployee.hireDate}
+            onChange={e => setNewEmployee({ ...newEmployee, hireDate: e.target.value })}
+            sx={{ minWidth: 170 }}
+            InputLabelProps={{ shrink: true }}
           />
           <Button type="submit" variant="contained" sx={{ alignSelf: 'center' }}>
             Add Employee
@@ -416,6 +473,7 @@ const AdminPanel = () => {
                   <MenuItem value="Sales">Sales</MenuItem>
                   <MenuItem value="Marketing">Marketing</MenuItem>
                   <MenuItem value="Engineering">Engineering</MenuItem>
+                  <MenuItem value="Management">Management</MenuItem>
                 </Select>
               </FormControl>
 

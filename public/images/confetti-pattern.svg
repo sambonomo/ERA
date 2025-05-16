@@ -1,0 +1,16 @@
+<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="confetti" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+      <!-- Small particles -->
+      <rect x="10" y="10" width="6" height="6" fill="#E6E6E6" transform="rotate(30, 12.5, 12.5)" />
+      <rect x="30" y="20" width="4" height="9" fill="#E6E6E6" transform="rotate(45, 31.5, 24)" />
+      <rect x="70" y="70" width="5" height="5" fill="#E6E6E6" transform="rotate(12, 72, 72)" />
+      <rect x="50" y="30" width="7" height="4" fill="#E6E6E6" transform="rotate(60, 53, 31.5)" />
+      <rect x="80" y="40" width="5" height="8" fill="#E6E6E6" transform="rotate(-20, 82, 43.5)" />
+      <rect x="40" y="60" width="6" height="6" fill="#E6E6E6" transform="rotate(10, 42.5, 62.5)" />
+      <rect x="20" y="80" width="4" height="4" fill="#E6E6E6" transform="rotate(35, 21.5, 81.5)" />
+      <rect x="60" y="90" width="8" height="5" fill="#E6E6E6" transform="rotate(5, 63.5, 92)" />
+    </pattern>
+  </defs>
+  <rect width="300" height="300" fill="url(#confetti)" />
+</svg> 

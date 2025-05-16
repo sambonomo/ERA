@@ -1,0 +1,5 @@
+<svg width="200" height="80" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="80" fill="none"/>
+  <text x="10" y="50" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#FC8181">FutureTech</text>
+  <rect x="165" y="25" width="30" height="30" fill="#FC8181" opacity="0.6" rx="5" ry="5"/>
+</svg> 

@@ -1,0 +1,5 @@
+<svg width="200" height="80" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="80" fill="none"/>
+  <text x="10" y="50" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#00A3A3">TechCorp</text>
+  <circle cx="170" cy="40" r="20" fill="#00A3A3" opacity="0.6"/>
+</svg> 

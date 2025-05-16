@@ -1,7 +1,8 @@
 // src/pages/LoginPage.js
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 // MUI imports
 import {
@@ -12,17 +13,22 @@ import {
   Button,
   Alert,
   Paper,
+  Link,
+  useTheme,
 } from '@mui/material';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+
+const MotionPaper = motion(Paper);
 
 /**
  * LoginPage - Provides a login form for users to authenticate.
- * If email verification is required, you can add a check after signIn
- * to ensure the user has a verified email. For example, if user.emailVerified === false,
- * show an alert or redirect them to a "Verify Email" page.
+ * Features a modern design with our new color scheme and animations.
  */
 const LoginPage = () => {
   const { signIn } = useContext(AuthContext);
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,17 +39,7 @@ const LoginPage = () => {
     setError('');
 
     try {
-      // signIn presumably wraps createUserWithEmailAndPassword or signInWithEmailAndPassword
-      // then updates auth context. If email verification is needed, we can add a check after signIn.
       const userCred = await signIn(email, password);
-
-      // Optional: check if user is verified
-      // if (userCred && !userCred.user.emailVerified) {
-      //   setError('Your email address is not verified. Please verify before continuing.');
-      //   return;
-      // }
-
-      // If success, navigate
       navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
@@ -52,53 +48,192 @@ const LoginPage = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: 6 }}>
-      <Paper sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Log In
-        </Typography>
-
-        {/* If there's an error, display it as an Alert */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-
-        <Box
-          component="form"
-          onSubmit={handleLogin}
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+        py: 4,
+      }}
+    >
+      <Container maxWidth="sm">
+        <MotionPaper
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2, // spacing between inputs
-            mt: 2,
+            p: { xs: 3, md: 4 },
+            borderRadius: 'var(--border-radius-lg)',
+            boxShadow: 'var(--shadow-xl)',
+            background: 'white',
           }}
         >
-          <TextField
-            label="Email"
-            type="email"
-            required
-            placeholder="example@company.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              mb: 3,
+            }}
+          >
+            <Box
+              sx={{
+                width: 56,
+                height: 56,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: 'var(--color-primary)',
+                color: 'white',
+                mb: 2,
+              }}
+            >
+              <LockOutlinedIcon />
+            </Box>
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{
+                fontWeight: 700,
+                color: 'var(--color-neutral-800)',
+                mb: 1,
+              }}
+            >
+              Welcome Back
+            </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ mb: 3 }}
+            >
+              Sign in to continue to SparkBlaze
+            </Typography>
+          </Box>
 
-          <TextField
-            label="Password"
-            type="password"
-            required
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          {error && (
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 3,
+                borderRadius: 'var(--border-radius-md)',
+              }}
+            >
+              {error}
+            </Alert>
+          )}
 
-          <Button type="submit" variant="contained" color="primary">
-            Log In
-          </Button>
-        </Box>
-      </Paper>
-    </Container>
+          <Box
+            component="form"
+            onSubmit={handleLogin}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+            }}
+          >
+            <TextField
+              label="Email"
+              type="email"
+              required
+              placeholder="example@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <EmailOutlinedIcon 
+                    sx={{ 
+                      mr: 1,
+                      color: 'var(--color-neutral-400)',
+                    }} 
+                  />
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 'var(--border-radius-md)',
+                  '&:hover fieldset': {
+                    borderColor: 'var(--color-primary)',
+                  },
+                },
+              }}
+            />
+
+            <TextField
+              label="Password"
+              type="password"
+              required
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <LockOutlinedIcon 
+                    sx={{ 
+                      mr: 1,
+                      color: 'var(--color-neutral-400)',
+                    }} 
+                  />
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 'var(--border-radius-md)',
+                  '&:hover fieldset': {
+                    borderColor: 'var(--color-primary)',
+                  },
+                },
+              }}
+            />
+
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              sx={{
+                mt: 2,
+                py: 1.5,
+                borderRadius: 'var(--border-radius-md)',
+                background: 'var(--color-primary)',
+                '&:hover': {
+                  background: 'var(--color-primary-dark)',
+                  transform: 'translateY(-2px)',
+                },
+                transition: 'all 0.2s ease-in-out',
+              }}
+            >
+              Sign In
+            </Button>
+
+            <Box
+              sx={{
+                mt: 2,
+                textAlign: 'center',
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                Don't have an account?{' '}
+                <Link
+                  component={RouterLink}
+                  to="/signup"
+                  sx={{
+                    color: 'var(--color-primary)',
+                    textDecoration: 'none',
+                    fontWeight: 500,
+                    '&:hover': {
+                      color: 'var(--color-primary-dark)',
+                    },
+                  }}
+                >
+                  Sign up
+                </Link>
+              </Typography>
+            </Box>
+          </Box>
+        </MotionPaper>
+      </Container>
+    </Box>
   );
 };
 

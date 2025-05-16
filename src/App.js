@@ -16,6 +16,7 @@ import AdminPanel from './pages/AdminPanel';
 import RewardStore from './pages/RewardStore';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import EmployeeDirectory from './pages/EmployeeDirectory';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/rewards" element={<RewardStore />} />
+        <Route path="/directory" element={<EmployeeDirectory />} />
 
         {/* Optional 404 or Catch-all */}
         {/* <Route path="*" element={<NotFoundPage />} /> */}
